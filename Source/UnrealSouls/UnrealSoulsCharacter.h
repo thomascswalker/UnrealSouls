@@ -40,9 +40,6 @@ class AUnrealSoulsCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float SpeedMultiplier = 1.0f;
-
 public:
 	AUnrealSoulsCharacter();
 
