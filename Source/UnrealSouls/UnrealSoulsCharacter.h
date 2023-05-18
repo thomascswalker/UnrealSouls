@@ -7,8 +7,7 @@
 #include "InputActionValue.h"
 #include "UnrealSoulsCharacter.generated.h"
 
-
-UCLASS(config=Game)
+UCLASS(config = Game)
 class AUnrealSoulsCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -20,14 +19,18 @@ class AUnrealSoulsCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-	
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* JumpAction;
+	class UInputAction* RollAction;
+
+	/** Jump Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* SprintAction;
 
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -37,23 +40,23 @@ class AUnrealSoulsCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float SpeedMultiplier = 1.0f;
+
 public:
 	AUnrealSoulsCharacter();
-	
 
 protected:
+	///** Called for movement input */
+	//void Move(const FInputActionValue& Value);
 
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-			
+	///** Called for looking input */
+	//void Look(const FInputActionValue& Value);
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	// To add mapping context
 	virtual void BeginPlay();
 
@@ -63,4 +66,3 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };
-
