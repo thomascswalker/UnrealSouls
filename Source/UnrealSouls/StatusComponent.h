@@ -37,6 +37,10 @@ public:
 
 	float LastDepletion = 0.0f;
 
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDepleted);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FDepleted Depleted;
+
 public:
 	// Sets default values for this component's properties
 	UStatusComponent();

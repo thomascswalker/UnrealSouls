@@ -45,4 +45,8 @@ void UStatusComponent::Deplete(float Amount)
 {
 	LastDepletion = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 	Value = FMath::Clamp(Value - Amount, 0.0f, MaxValue);
+	if (Value == 0.0f)
+	{
+		Depleted.Broadcast();
+	}
 }
