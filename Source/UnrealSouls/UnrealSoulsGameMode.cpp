@@ -7,9 +7,15 @@
 AUnrealSoulsGameMode::AUnrealSoulsGameMode()
 {
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Blueprints/Player/BP_UnrealSoulsCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Blueprints/Player/BP_UnrealSoulsPlayerCharacter"));
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<APlayerController> PlayerControllerBPClass(TEXT("/Game/Blueprints/Player/BP_UnrealSoulsPlayerController"));
+	if (PlayerControllerBPClass.Class != NULL)
+	{
+		PlayerControllerClass = PlayerControllerBPClass.Class;
 	}
 }
