@@ -25,17 +25,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ReplenishDelay = 0.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bCanReplenish = false;
+	bool bAutoReplenish = false;
 
 	// Deplete
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DepleteRate = 0.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bCanDeplete = false;
-
 	float LastDepletion = 0.0f;
+
+	bool bAutoDeplete = false;
 
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDepleted);
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")

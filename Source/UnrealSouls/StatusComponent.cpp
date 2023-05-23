@@ -23,16 +23,19 @@ void UStatusComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	float CurrentTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
-	if (ReplenishRate > 0.0f && Value < MaxValue && bCanReplenish && CurrentTime - LastDepletion > ReplenishDelay)
+
+	bool bCanReplenish = ReplenishRate > 0.0f && Value < MaxValue;
+	bool bPastDelayThreshold = CurrentTime - LastDepletion > ReplenishDelay;
+	if (bCanReplenish && bPastDelayThreshold && bAutoReplenish)
 	{
 		float ReplenishAmount = DeltaTime * ReplenishRate;
 		Replenish(ReplenishAmount);
 	}
 
-	if (DepleteRate > 0.0f && Value > 0.0f && bCanDeplete)
+	if (DepleteRate > 0.0f && Value > 0.0f && bAutoDeplete)
 	{
 		float DepleteAmount = DeltaTime * DepleteRate;
-		Replenish(DepleteAmount);
+		Deplete(DepleteAmount);
 	}
 }
 

@@ -38,6 +38,9 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 		// Sprinting
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnSprintTriggered);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AUnrealSoulsPlayerController::OnSprintCompleted);
+
+		// Jump
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnJumpTriggered);
 	}
 }
 
@@ -75,10 +78,7 @@ void AUnrealSoulsPlayerController::OnLookTriggered(const FInputActionValue& Acti
 
 void AUnrealSoulsPlayerController::OnRollTriggered(const FInputActionValue& ActionValue)
 {
-	if (PlayerCharacter->CanRoll())
-	{
-		PlayerCharacter->StartRoll();
-	}
+	PlayerCharacter->StartRoll();
 }
 
 void AUnrealSoulsPlayerController::OnSprintTriggered(const FInputActionValue& ActionValue)
@@ -89,4 +89,13 @@ void AUnrealSoulsPlayerController::OnSprintTriggered(const FInputActionValue& Ac
 void AUnrealSoulsPlayerController::OnSprintCompleted(const FInputActionValue& ActionValue)
 {
 	PlayerCharacter->EndSprint();
+}
+
+void AUnrealSoulsPlayerController::OnJumpTriggered(const FInputActionValue& ActionValue)
+{
+	if (PlayerCharacter->bIsSprinting && PlayerCharacter->StaminaComponent->Value > 0.0f)
+	{
+		PlayerCharacter->Jump();
+		PlayerCharacter->StaminaComponent->Deplete(PlayerCharacter->JumpCost);
+	}
 }

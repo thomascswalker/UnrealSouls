@@ -18,6 +18,7 @@ class AUnrealSoulsCharacter : public ACharacter
 public:
 	FVector CacheDirection;
 
+	bool bCanMove = false;
 	bool bIsJumping = false;
 	bool bIsRolling = false;
 	bool bIsSprinting = false;
@@ -52,20 +53,20 @@ public:
 	void SetMovementSpeed(float NewSpeed) { GetCharacterMovement()->MaxWalkSpeed = NewSpeed; }
 
 	UFUNCTION(BlueprintCallable)
-	bool CanSprint() { return false; }
+	virtual bool CanSprint() { return false; }
 
 	UFUNCTION(BlueprintCallable)
-	void StartSprint();
+	virtual void StartSprint();
 
 	UFUNCTION(BlueprintCallable)
-	void EndSprint();
+	virtual void EndSprint();
 
 	UFUNCTION(BlueprintCallable)
-	bool CanRoll() { return false; }
+	virtual bool CanRoll() { return false; }
 
 	UFUNCTION(BlueprintCallable)
-	void StartRoll();
+	virtual void StartRoll();
 
 	UFUNCTION(BlueprintCallable)
-	void EndRoll();
+	virtual void EndRoll();
 };

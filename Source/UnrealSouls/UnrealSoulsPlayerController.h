@@ -41,6 +41,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* JumpAction;
+
 	FVector CachePlayerDirection;
 
 public:
@@ -58,4 +61,5 @@ public:
 	void OnRollTriggered(const FInputActionValue& ActionValue);
 	void OnSprintTriggered(const FInputActionValue& ActionValue);
 	void OnSprintCompleted(const FInputActionValue& ActionValue);
+	void OnJumpTriggered(const FInputActionValue& ActionValue);
 };

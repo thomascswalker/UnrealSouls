@@ -36,7 +36,7 @@ void AUnrealSoulsCharacter::StartSprint()
 }
 
 void AUnrealSoulsCharacter::EndSprint() {
-	bIsSprinting = true;
+	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed;
 	GetCharacterMovement()->MaxAcceleration = BaseAcceleration;
 }
