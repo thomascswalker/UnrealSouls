@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
+#include "StatusComponent.h"
+
 #include "UnrealSoulsCharacter.generated.h"
 
 UCLASS(config = Game)
@@ -12,54 +15,58 @@ class AUnrealSoulsCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+public:
+	FVector CacheDirection;
 
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+	bool bCanMove = false;
+	bool bIsJumping = false;
+	bool bIsRolling = false;
+	bool bIsSprinting = false;
 
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputMappingContext* DefaultMappingContext;
+	float BaseSpeed = 400.0f;
+	float BaseAcceleration = 1500.0f;
 
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* RollAction;
+	float RollSpeed = 1000.0f;
+	float RollAcceleration = 3000.0f;
 
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* SprintAction;
+	float SprintSpeed = 600.0f;
+	float SprintAcceleration = 2500.0f;
 
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* MoveAction;
+	float WalkSpeed = 150.0f;
+	float WalkAcceleration = 500.0f;
 
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RollMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStatusComponent> HealthComponent;
 
 public:
 	AUnrealSoulsCharacter();
-
-protected:
-	///** Called for movement input */
-	//void Move(const FInputActionValue& Value);
-
-	///** Called for looking input */
-	//void Look(const FInputActionValue& Value);
-
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	// To add mapping context
-	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime) override;
 
 public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	UFUNCTION(BlueprintCallable)
+	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetMovementSpeed(float NewSpeed) { GetCharacterMovement()->MaxWalkSpeed = NewSpeed; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool CanSprint() { return false; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual void StartSprint();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void EndSprint();
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool CanRoll() { return false; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual void StartRoll();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void EndRoll();
 };
