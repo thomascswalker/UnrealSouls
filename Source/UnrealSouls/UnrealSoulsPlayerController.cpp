@@ -119,3 +119,7 @@ void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& 
 		IInteractive::Execute_Interact(CurrentInteractiveEntity.GetObject());
 	}
 }
+
+void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}
+
+void AUnrealSoulsPlayerController::HidePrompt_Implementation() {}

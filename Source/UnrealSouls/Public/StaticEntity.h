@@ -23,10 +23,12 @@ public:
     UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> Mesh;
 
-    UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
-	TObjectPtr<UCapsuleComponent> CapsuleComponent;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
+	TObjectPtr<UCapsuleComponent> Collider;
 
 protected:
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -39,4 +41,10 @@ public:
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure)
 	FText GetActionText();
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

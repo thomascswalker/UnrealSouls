@@ -70,4 +70,10 @@ public:
 	void OnSprintCompleted(const FInputActionValue& ActionValue);
 	void OnJumpTriggered(const FInputActionValue& ActionValue);
 	void OnInteractTriggered(const FInputActionValue& ActionValue);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void ShowPrompt(const FText& Text);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void HidePrompt();
 };

@@ -18,11 +18,17 @@ class AUnrealSoulsCharacter : public ACharacter
 public:
 	FVector CacheDirection;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bCanMove = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsJumping = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsRolling = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsSprinting = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsClimbing = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 
 	float BaseSpeed = 400.0f;
 	float BaseAcceleration = 1500.0f;
@@ -40,10 +46,16 @@ public:
 	UAnimMontage* RollMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* ClimbStartMontage;
+	UAnimMontage* ClimbStartTopMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* ClimbEndMontage;
+	UAnimMontage* ClimbStartBottomMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* ClimbEndTopMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* ClimbEndBottomMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStatusComponent> HealthComponent;

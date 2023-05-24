@@ -66,20 +66,20 @@ void AUnrealSoulsCharacter::EndRoll()
 
 void AUnrealSoulsCharacter::StartClimb()
 {
-	bIsClimbing = true;
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-	if (ClimbStartMontage)
-	{
-		PlayAnimMontage(ClimbStartMontage);
-	}
+	//bIsClimbing = true;
+	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+	//if (ClimbStartMontage)
+	//{
+	//	PlayAnimMontage(ClimbStartMontage);
+	//}
 }
 
 void AUnrealSoulsCharacter::EndClimb()
 {
-	bIsClimbing = false;
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-	if (ClimbEndMontage)
-	{
-		PlayAnimMontage(ClimbEndMontage);
-	}
+	//bIsClimbing = false;
+	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	//if (ClimbEndMontage)
+	//{
+	//	PlayAnimMontage(ClimbEndMontage);
+	//}
 }
