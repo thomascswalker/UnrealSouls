@@ -17,7 +17,6 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 	{
 		HealthComponent->SetupAttachment(RootComponent);
 	}
-
 }
 
 void AUnrealSoulsCharacter::Tick(float DeltaTime)
@@ -35,7 +34,8 @@ void AUnrealSoulsCharacter::StartSprint()
 	GetCharacterMovement()->MaxAcceleration = SprintAcceleration;
 }
 
-void AUnrealSoulsCharacter::EndSprint() {
+void AUnrealSoulsCharacter::EndSprint()
+{
 	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed;
 	GetCharacterMovement()->MaxAcceleration = BaseAcceleration;
@@ -61,5 +61,25 @@ void AUnrealSoulsCharacter::EndRoll()
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		GetCharacterMovement()->StopMovementImmediately();
+	}
+}
+
+void AUnrealSoulsCharacter::StartClimb()
+{
+	bIsClimbing = true;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+	if (ClimbStartMontage)
+	{
+		PlayAnimMontage(ClimbStartMontage);
+	}
+}
+
+void AUnrealSoulsCharacter::EndClimb()
+{
+	bIsClimbing = false;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	if (ClimbEndMontage)
+	{
+		PlayAnimMontage(ClimbEndMontage);
 	}
 }

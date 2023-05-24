@@ -22,6 +22,7 @@ public:
 	bool bIsJumping = false;
 	bool bIsRolling = false;
 	bool bIsSprinting = false;
+	bool bIsClimbing = false;
 
 	float BaseSpeed = 400.0f;
 	float BaseAcceleration = 1500.0f;
@@ -37,6 +38,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* RollMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* ClimbStartMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* ClimbEndMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStatusComponent> HealthComponent;
@@ -69,4 +76,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void StartClimb();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void EndClimb();
 };
