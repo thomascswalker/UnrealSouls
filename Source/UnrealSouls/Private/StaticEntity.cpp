@@ -12,7 +12,7 @@ AStaticEntity::AStaticEntity()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	Mesh->SetRelativeRotation(FQuat::MakeFromEuler(FVector(0, 0, 90)));
+	//Mesh->SetRelativeRotation(FQuat::MakeFromEuler(FVector(0, 0, 90)));
 	Mesh->SetupAttachment(RootComponent);
 
 	Collider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collider"));
@@ -73,7 +73,7 @@ void AStaticEntity::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	Controller->CurrentInteractiveEntity.SetObject(nullptr);
 }
 
-void AStaticEntity::Interact_Implementation() {}
+void AStaticEntity::Interact_Implementation(AActor* OtherActor) {}
 
 FText AStaticEntity::GetActionText_Implementation()
 {

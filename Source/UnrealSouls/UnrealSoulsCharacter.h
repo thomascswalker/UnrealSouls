@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
+#include "Components/BoxComponent.h"
+
 #include "StatusComponent.h"
 
 #include "UnrealSoulsCharacter.generated.h"
@@ -16,6 +18,9 @@ class AUnrealSoulsCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStatusComponent> HealthComponent;
+
 	FVector CacheDirection;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -57,8 +62,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* ClimbEndBottomMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStatusComponent> HealthComponent;
+	int ClimbUuid = 0;
+	UAnimMontage* ClimbTransitionMontage;
+	AActor* CurrentLadder;
+	FVector CurrentLadderExitLocation;
 
 public:
 	AUnrealSoulsCharacter();
@@ -71,6 +78,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetMovementSpeed(float NewSpeed) { GetCharacterMovement()->MaxWalkSpeed = NewSpeed; }
 
+	// Sprinting
+
 	UFUNCTION(BlueprintCallable)
 	virtual bool CanSprint() { return false; }
 
@@ -79,6 +88,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndSprint();
+
+	// Rolling
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool CanRoll() { return false; }
@@ -89,9 +100,29 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
 
-	UFUNCTION(BlueprintCallable)
-	virtual void StartClimb();
+	// Climbing
 
-	UFUNCTION(BlueprintCallable)
-	virtual void EndClimb();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void StartClimb(FVector Location, FRotator Rotation, UAnimMontage* Montage);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void EndClimb(FVector Location, FRotator Rotation, UAnimMontage* Montage);
+
+	UFUNCTION()
+	void PlayClimbTransitionMontage();
+
+	UFUNCTION()
+	void TransitionMoveTo(FVector Location, FRotator Rotation, float Rate = 1.0f, FName ExecutionFunction = "");
+
+	UFUNCTION()
+	void OnLadderExitEnd();
+
+	UFUNCTION()
+	void OnTransitionMontageNotifyEnd(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION()
+	void OnLadderExitBottomOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnLadderExitTopOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

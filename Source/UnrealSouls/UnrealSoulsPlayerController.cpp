@@ -49,6 +49,12 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 
 void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& ActionValue)
 {
+	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(PlayerCharacter->GetMovementComponent());
+	if (Movement->MovementMode == EMovementMode::MOVE_None)
+	{
+		return;
+	}
+
 	// Get the current movement input vector
 	FVector2D MovementVector = ActionValue.Get<FVector2D>();
 
@@ -113,10 +119,11 @@ void AUnrealSoulsPlayerController::OnJumpTriggered(const FInputActionValue& Acti
 	}
 }
 
-void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& ActionValue) {
+void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& ActionValue)
+{
 	if (CurrentInteractiveEntity.GetObject() != nullptr)
 	{
-		IInteractive::Execute_Interact(CurrentInteractiveEntity.GetObject());
+		IInteractive::Execute_Interact(CurrentInteractiveEntity.GetObject(), PlayerCharacter);
 	}
 }
 

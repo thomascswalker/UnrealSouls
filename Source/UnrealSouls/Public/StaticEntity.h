@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 
 #include "Interactive.h"
@@ -37,7 +38,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void Interact();
+	void Interact(AActor* OtherActor);
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure)
 	FText GetActionText();
