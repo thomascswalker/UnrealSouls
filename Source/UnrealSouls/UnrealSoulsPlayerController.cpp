@@ -41,11 +41,20 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 
 		// Jump
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnJumpTriggered);
+
+		// Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnInteractTriggered);
 	}
 }
 
 void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& ActionValue)
 {
+	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(PlayerCharacter->GetMovementComponent());
+	if (Movement->MovementMode == EMovementMode::MOVE_None)
+	{
+		return;
+	}
+
 	// Get the current movement input vector
 	FVector2D MovementVector = ActionValue.Get<FVector2D>();
 
@@ -59,9 +68,19 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 	// Get right vector
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
+	// Get up vector
+	const FVector UpDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Z);
+
 	// Add movement
-	PlayerCharacter->AddMovementInput(ForwardDirection, MovementVector.Y);
-	PlayerCharacter->AddMovementInput(RightDirection, MovementVector.X);
+	if (!PlayerCharacter->bIsClimbing)
+	{
+		PlayerCharacter->AddMovementInput(ForwardDirection, MovementVector.Y);
+		PlayerCharacter->AddMovementInput(RightDirection, MovementVector.X);
+	}
+	else
+	{
+		PlayerCharacter->AddMovementInput(UpDirection, MovementVector.Y);
+	}
 }
 
 void AUnrealSoulsPlayerController::OnLookTriggered(const FInputActionValue& ActionValue)
@@ -99,3 +118,15 @@ void AUnrealSoulsPlayerController::OnJumpTriggered(const FInputActionValue& Acti
 		PlayerCharacter->StaminaComponent->Deplete(PlayerCharacter->JumpCost);
 	}
 }
+
+void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& ActionValue)
+{
+	if (CurrentInteractiveEntity.GetObject() != nullptr)
+	{
+		IInteractive::Execute_Interact(CurrentInteractiveEntity.GetObject(), PlayerCharacter);
+	}
+}
+
+void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}
+
+void AUnrealSoulsPlayerController::HidePrompt_Implementation() {}

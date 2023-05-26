@@ -9,6 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/InputSettings.h"
+#include "Public/Interactive.h"
 
 #include "UnrealSoulsPlayerController.generated.h"
 
@@ -44,6 +45,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* JumpAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InteractAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TScriptInterface<IInteractive> CurrentInteractiveEntity = nullptr;
+
 	FVector CachePlayerDirection;
 
 public:
@@ -62,4 +69,11 @@ public:
 	void OnSprintTriggered(const FInputActionValue& ActionValue);
 	void OnSprintCompleted(const FInputActionValue& ActionValue);
 	void OnJumpTriggered(const FInputActionValue& ActionValue);
+	void OnInteractTriggered(const FInputActionValue& ActionValue);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void ShowPrompt(const FText& Text);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void HidePrompt();
 };
