@@ -55,6 +55,11 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 		return;
 	}
 
+	if (Movement->IsFalling())
+	{
+		return;
+	}
+
 	// Get the current movement input vector
 	FVector2D MovementVector = ActionValue.Get<FVector2D>();
 

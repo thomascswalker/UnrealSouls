@@ -114,6 +114,7 @@ void AUnrealSoulsCharacter::PlayClimbTransitionMontage()
 		return;
 	}
 
+	AddActorLocalRotation(FRotator(0, 90, 0));
 	float MontageLength = AnimInstance->Montage_Play(ClimbTransitionMontage);
 	bool bPlayedSuccessfully = MontageLength > 0.f;
 
@@ -131,6 +132,8 @@ void AUnrealSoulsCharacter::PlayClimbTransitionMontage()
 
 void AUnrealSoulsCharacter::TransitionMoveTo(FVector Location, FRotator Rotation, float Rate, FName ExecutionFunction)
 {
+	AddActorLocalRotation(FRotator(0, -90, 0));
+
 	// Temporarily disable movement
 	FLatentActionInfo LatentActionInfo;
 	if (ExecutionFunction != "")
