@@ -49,8 +49,15 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 
 void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& ActionValue)
 {
+	// Disable input when we can't move
 	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(PlayerCharacter->GetMovementComponent());
 	if (Movement->MovementMode == EMovementMode::MOVE_None)
+	{
+		return;
+	}
+
+	// Disable movement while falling
+	if (Movement->IsFalling())
 	{
 		return;
 	}
@@ -79,7 +86,7 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 	}
 	else
 	{
-		PlayerCharacter->AddMovementInput(UpDirection, MovementVector.Y);
+		PlayerCharacter->ClimbingComponent->AddMovementInput(MovementVector.Y);
 	}
 }
 

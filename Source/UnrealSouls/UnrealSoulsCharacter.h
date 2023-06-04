@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
 #include "Components/BoxComponent.h"
+#include "Public/ClimbingComponent.h"
 
 #include "StatusComponent.h"
 
@@ -21,6 +22,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStatusComponent> HealthComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UClimbingComponent> ClimbingComponent;
+
 	FVector CacheDirection;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -31,9 +35,10 @@ public:
 	bool bIsRolling = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsSprinting = false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
+	bool bCanEverClimb = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsClimbing = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 
 	float BaseSpeed = 400.0f;
 	float BaseAcceleration = 1500.0f;
@@ -49,23 +54,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* RollMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* ClimbStartTopMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* ClimbStartBottomMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* ClimbEndTopMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* ClimbEndBottomMontage;
-
-	int ClimbUuid = 0;
-	UAnimMontage* ClimbTransitionMontage;
-	AActor* CurrentLadder;
-	FVector CurrentLadderExitLocation;
 
 public:
 	AUnrealSoulsCharacter();
@@ -99,30 +87,4 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
-
-	// Climbing
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void StartClimb(FVector Location, FRotator Rotation, UAnimMontage* Montage);
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void EndClimb(FVector Location, FRotator Rotation, UAnimMontage* Montage);
-
-	UFUNCTION()
-	void PlayClimbTransitionMontage();
-
-	UFUNCTION()
-	void TransitionMoveTo(FVector Location, FRotator Rotation, float Rate = 1.0f, FName ExecutionFunction = "");
-
-	UFUNCTION()
-	void OnLadderExitEnd();
-
-	UFUNCTION()
-	void OnTransitionMontageNotifyEnd(UAnimMontage* Montage, bool bInterrupted);
-
-	UFUNCTION()
-	void OnLadderExitBottomOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void OnLadderExitTopOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };
