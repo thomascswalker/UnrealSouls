@@ -3,6 +3,7 @@
 #include "UnrealSoulsPlayerController.h"
 
 #include "Kismet/KismetMathLibrary.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 
 AUnrealSoulsPlayerController::AUnrealSoulsPlayerController() {}
 
@@ -31,11 +32,20 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
 			FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(PlayerCharacter->GetActorLocation(), TargetActor->GetActorLocation());
 
 			// Only set the Yaw of the current rotation
-			FRotator NewRotation = PlayerCharacter->GetCapsuleComponent()->GetComponentRotation();
+			FRotator NewRotation = GetControlRotation();
 			NewRotation.Yaw = LookAt.Yaw;
 
 			// Rotate the controller
-			SetControlRotation(LookAt);
+			SetControlRotation(NewRotation);
+
+			// Get the 2D Coordinates of the new target location
+			FVector2D ScreenLocation;
+
+			const bool bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(this, TargetActor->GetActorLocation(), ScreenLocation, true);
+			if (bProjected)
+			{
+				TargetLocationChanged.Broadcast(ScreenLocation);
+			}
 		}
 	}
 }
@@ -168,15 +178,13 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 {
 	if (CurrentTarget.GetObject() != nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString(TEXT("Clearing target")));
 		CurrentTarget.SetObject(nullptr);
+		TargetVisibilityChanged.Broadcast(false);
 		return;
 	}
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString(TEXT("Targeting...")));
-
 	// Get the start and end locations of our sweep trace
-	float TraceRadius = 100.0f;
+	float TraceRadius = 200.0f;
 	FVector SweepStart = PlayerCharacter->GetActorLocation();
 
 	// Find out which way is forward
@@ -193,7 +201,6 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 	// Build query params, ignoring the player character
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(PlayerCharacter);
-	QueryParams.bDebugQuery = true;
 
 	// Create our sphere collision shape
 	FCollisionShape SphereTrace = FCollisionShape::MakeSphere(TraceRadius);
@@ -202,10 +209,9 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 	const bool bHitResult = GetWorld()->SweepMultiByChannel(OutHits, SweepStart, SweepEnd, FQuat::Identity, ECC_Pawn, SphereTrace, QueryParams);
 	if (!bHitResult)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString(TEXT("Not hits.")));
 		return;
 	}
-	
+
 	AActor* ClosestActor = nullptr;
 	for (FHitResult& Hit : OutHits)
 	{
@@ -215,14 +221,11 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 		{
 			continue;
 		}
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Hit Result: %s"), *Hit.GetActor()->GetName()));
-		DrawDebugSphere(GetWorld(), Hit.GetActor()->GetActorLocation(), SphereTrace.GetSphereRadius(), 12, FColor::Blue, false, 2.0f);
 
 		CurrentTarget.SetObject(Hit.GetActor());
+		TargetVisibilityChanged.Broadcast(true);
 		return;
 	}
-
-	// Set the target to the closest actor
 }
 
 void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}

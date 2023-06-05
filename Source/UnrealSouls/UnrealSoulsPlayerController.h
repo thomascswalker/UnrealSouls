@@ -63,6 +63,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	TScriptInterface<ITargetable> CurrentTarget = nullptr;
 
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetVisibilityChanged, const bool, bVisibility);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FTargetVisibilityChanged TargetVisibilityChanged;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetLocationChanged, FVector2D, Location);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FTargetLocationChanged TargetLocationChanged;
+
 public:
 	AUnrealSoulsPlayerController();
 
