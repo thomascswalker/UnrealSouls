@@ -8,13 +8,21 @@
 #include "InputActionValue.h"
 #include "Components/BoxComponent.h"
 #include "Public/ClimbingComponent.h"
-
+#include "Public/Targetable.h"
 #include "StatusComponent.h"
 
 #include "UnrealSoulsCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EFaction : uint8
+{
+	Passive,
+	Neutral,
+	Aggressive
+};
+
 UCLASS(config = Game)
-class AUnrealSoulsCharacter : public ACharacter
+class AUnrealSoulsCharacter : public ACharacter, public ITargetable
 {
 	GENERATED_BODY()
 
@@ -54,6 +62,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* RollMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	EFaction Faction;
 
 public:
 	AUnrealSoulsCharacter();

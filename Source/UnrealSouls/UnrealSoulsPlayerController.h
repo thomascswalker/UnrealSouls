@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Public/Interactive.h"
+#include "Public/Targetable.h"
 
 #include "UnrealSoulsPlayerController.generated.h"
 
@@ -48,15 +49,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* InteractAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* TargetAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TScriptInterface<IInteractive> CurrentInteractiveEntity = nullptr;
 
 	FVector CachePlayerDirection;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float TargetDistance = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	TScriptInterface<ITargetable> CurrentTarget = nullptr;
+
 public:
 	AUnrealSoulsPlayerController();
 
 	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupInputComponent() override;
 
@@ -70,6 +81,7 @@ public:
 	void OnSprintCompleted(const FInputActionValue& ActionValue);
 	void OnJumpTriggered(const FInputActionValue& ActionValue);
 	void OnInteractTriggered(const FInputActionValue& ActionValue);
+	void OnTargetTriggered(const FInputActionValue& ActionValue);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ShowPrompt(const FText& Text);

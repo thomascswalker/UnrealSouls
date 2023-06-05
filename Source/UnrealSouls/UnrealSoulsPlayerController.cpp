@@ -2,6 +2,8 @@
 
 #include "UnrealSoulsPlayerController.h"
 
+#include "Kismet/KismetMathLibrary.h"
+
 AUnrealSoulsPlayerController::AUnrealSoulsPlayerController() {}
 
 void AUnrealSoulsPlayerController::BeginPlay()
@@ -15,6 +17,26 @@ void AUnrealSoulsPlayerController::BeginPlay()
 	{
 		Subsystem->ClearAllMappings();
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+	}
+}
+
+void AUnrealSoulsPlayerController::Tick(float DeltaTime)
+{
+	if (CurrentTarget.GetObject() != nullptr)
+	{
+		AActor* TargetActor = Cast<AActor>(CurrentTarget.GetObject());
+		if (TargetActor)
+		{
+			// Get the lookat rotation towards the current target
+			FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(PlayerCharacter->GetActorLocation(), TargetActor->GetActorLocation());
+
+			// Only set the Yaw of the current rotation
+			FRotator NewRotation = PlayerCharacter->GetCapsuleComponent()->GetComponentRotation();
+			NewRotation.Yaw = LookAt.Yaw;
+
+			// Rotate the controller
+			SetControlRotation(LookAt);
+		}
 	}
 }
 
@@ -44,6 +66,9 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 
 		// Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnInteractTriggered);
+
+		// Target
+		EnhancedInputComponent->BindAction(TargetAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnTargetTriggered);
 	}
 }
 
@@ -92,6 +117,11 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 
 void AUnrealSoulsPlayerController::OnLookTriggered(const FInputActionValue& ActionValue)
 {
+	// If we're currently targeting something, don't allow looking around
+	if (CurrentTarget.GetObject() != nullptr)
+	{
+		return;
+	}
 	FVector2D LookVector = ActionValue.Get<FVector2D>();
 
 	// Multiply the look input vector by the look sensitivity
@@ -132,6 +162,67 @@ void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& 
 	{
 		IInteractive::Execute_Interact(CurrentInteractiveEntity.GetObject(), PlayerCharacter);
 	}
+}
+
+void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& ActionValue)
+{
+	if (CurrentTarget.GetObject() != nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString(TEXT("Clearing target")));
+		CurrentTarget.SetObject(nullptr);
+		return;
+	}
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString(TEXT("Targeting...")));
+
+	// Get the start and end locations of our sweep trace
+	float TraceRadius = 100.0f;
+	FVector SweepStart = PlayerCharacter->GetActorLocation();
+
+	// Find out which way is forward
+	const FRotator Rotation = GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// Get forward vector
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	// Sweep out from the character in the direction of the camera
+	FVector SweepEnd = PlayerCharacter->GetActorLocation() + (ForwardDirection * TargetDistance);
+	TArray<FHitResult> OutHits;
+
+	// Build query params, ignoring the player character
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(PlayerCharacter);
+	QueryParams.bDebugQuery = true;
+
+	// Create our sphere collision shape
+	FCollisionShape SphereTrace = FCollisionShape::MakeSphere(TraceRadius);
+
+	// Do the trace, exiting if we hit nothing
+	const bool bHitResult = GetWorld()->SweepMultiByChannel(OutHits, SweepStart, SweepEnd, FQuat::Identity, ECC_Pawn, SphereTrace, QueryParams);
+	if (!bHitResult)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString(TEXT("Not hits.")));
+		return;
+	}
+	
+	AActor* ClosestActor = nullptr;
+	for (FHitResult& Hit : OutHits)
+	{
+		// Is this a valid targetable pawn?
+		ITargetable* TargetPawn = Cast<ITargetable>(Hit.GetActor());
+		if (!TargetPawn)
+		{
+			continue;
+		}
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Hit Result: %s"), *Hit.GetActor()->GetName()));
+		DrawDebugSphere(GetWorld(), Hit.GetActor()->GetActorLocation(), SphereTrace.GetSphereRadius(), 12, FColor::Blue, false, 2.0f);
+
+		CurrentTarget.SetObject(Hit.GetActor());
+		return;
+	}
+
+	// Set the target to the closest actor
 }
 
 void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}
