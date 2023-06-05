@@ -29,10 +29,7 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 	ClimbingComponent = Cast<UClimbingComponent>(NewClimbingComponent);
 }
 
-void AUnrealSoulsCharacter::Tick(float DeltaTime)
-{
-
-}
+void AUnrealSoulsCharacter::Tick(float DeltaTime) {}
 
 void AUnrealSoulsCharacter::StartSprint()
 {
@@ -69,4 +66,30 @@ void AUnrealSoulsCharacter::EndRoll()
 	{
 		GetCharacterMovement()->StopMovementImmediately();
 	}
+}
+
+bool AUnrealSoulsCharacter::LightAttack()
+{
+	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
+	if (AttackMontage && AnimInstance)
+	{
+		float MontageLength = AnimInstance->Montage_Play(AttackMontage);
+		const bool bPlayedSuccessfully = (MontageLength > 0.f);
+		if (bPlayedSuccessfully)
+		{
+			FOnMontageEnded OnMontageEndedDelegate;
+			OnMontageEndedDelegate.BindUObject(this, &AUnrealSoulsCharacter::EndAttack);
+			AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AttackMontage);
+		}
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void AUnrealSoulsCharacter::EndAttack(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsAttacking = false;
 }

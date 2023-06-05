@@ -52,6 +52,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* TargetAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* AttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* BlockAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TScriptInterface<IInteractive> CurrentInteractiveEntity = nullptr;
 
@@ -62,7 +68,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	TScriptInterface<ITargetable> CurrentTarget = nullptr;
-
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetVisibilityChanged, const bool, bVisibility);
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
@@ -91,6 +96,11 @@ public:
 	void OnJumpTriggered(const FInputActionValue& ActionValue);
 	void OnInteractTriggered(const FInputActionValue& ActionValue);
 	void OnTargetTriggered(const FInputActionValue& ActionValue);
+
+	void OnAttackTriggered(const FInputActionValue& ActionValue);
+
+	void OnBlockTriggered(const FInputActionValue& ActionValue);
+	void OnBlockCompleted(const FInputActionValue& ActionValue);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ShowPrompt(const FText& Text);

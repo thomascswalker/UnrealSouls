@@ -63,8 +63,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* RollMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* AttackMontage;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	EFaction Faction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAttacking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsBlocking = false;
 
 public:
 	AUnrealSoulsCharacter();
@@ -98,4 +107,20 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
+
+	// Attacking
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool LightAttack();
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool HeavyAttack() { return false; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual void EndAttack(UAnimMontage* Montage, bool bInterrupted);
+
+	// Blocking
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool Block() { return false; }
 };
