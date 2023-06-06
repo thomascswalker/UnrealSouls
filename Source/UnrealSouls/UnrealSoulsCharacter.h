@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
 #include "Components/BoxComponent.h"
+#include "Components/TimelineComponent.h"
 #include "Public/ClimbingComponent.h"
 #include "Public/Targetable.h"
 #include "StatusComponent.h"
@@ -32,6 +33,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UClimbingComponent> ClimbingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UTimelineComponent> ActionTimeline;
 
 	FVector CacheDirection;
 
@@ -75,11 +79,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bIsBlocking = false;
 
+	UPROPERTY()
+	UCurveFloat* DefaultRollCurve;
+
 public:
 	AUnrealSoulsCharacter();
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 public:
+	UFUNCTION(BlueprintCallable)
+	bool PlayMontage(UAnimMontage* Montage, const FName InFunctionName);
+
 	UFUNCTION(BlueprintCallable)
 	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
 
@@ -106,15 +117,18 @@ public:
 	virtual void StartRoll();
 
 	UFUNCTION(BlueprintCallable)
+	virtual void UpdateRoll(float Multiplier);
+
+	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
 
 	// Attacking
 
 	UFUNCTION(BlueprintCallable)
-	virtual bool LightAttack();
+	virtual void LightAttack();
 
 	UFUNCTION(BlueprintCallable)
-	virtual bool HeavyAttack() { return false; }
+	virtual void HeavyAttack() {}
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndAttack(UAnimMontage* Montage, bool bInterrupted);

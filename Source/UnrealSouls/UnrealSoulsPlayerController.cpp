@@ -99,8 +99,8 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 		return;
 	}
 
-	// Disable movement while falling
-	if (Movement->IsFalling())
+	// Disallow movement while attacking, rolling, or falling
+	if (Movement->IsFalling() || PlayerCharacter->bIsAttacking || PlayerCharacter->bIsRolling)
 	{
 		return;
 	}
