@@ -22,6 +22,15 @@ enum class EFaction : uint8
 	Aggressive
 };
 
+UENUM(BlueprintType)
+enum class ERollOrientation : uint8
+{
+	Forward,
+	Backward,
+	Left,
+	Right
+};
+
 UCLASS(config = Game)
 class AUnrealSoulsCharacter : public ACharacter, public ITargetable
 {
@@ -56,7 +65,7 @@ public:
 	float BaseAcceleration = 1500.0f;
 
 	float RollSpeed = 1000.0f;
-	float RollAcceleration = 3000.0f;
+	FVector RollDirection;
 
 	float SprintSpeed = 600.0f;
 	float SprintAcceleration = 2500.0f;
@@ -65,7 +74,16 @@ public:
 	float WalkAcceleration = 500.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RollMontage;
+	UAnimMontage* RollForwardMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RollBackwardMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RollRightMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RollLeftMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* AttackMontage;
@@ -89,7 +107,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	bool PlayMontage(UAnimMontage* Montage, const FName InFunctionName);
+	bool PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate = 1.0f);
 
 	UFUNCTION(BlueprintCallable)
 	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
@@ -137,4 +155,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool Block() { return false; }
+
+	// Damage
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnTakeDamage(float DamageTaken);
 };

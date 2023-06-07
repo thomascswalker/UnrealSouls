@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Math/UnrealMathUtility.h"
 #include "Ladder.h"
 
 AUnrealSoulsCharacter::AUnrealSoulsCharacter()
@@ -65,19 +66,21 @@ void AUnrealSoulsCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, const FName InFunctionName)
+bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate)
 {
 	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
 	if (Montage && AnimInstance)
 	{
-		float MontageLength = AnimInstance->Montage_Play(Montage);
+		float MontageLength = AnimInstance->Montage_Play(Montage, PlayRate);
 		const bool bPlayedSuccessfully = (MontageLength > 0.f);
-		if (bPlayedSuccessfully)
+		if (!bPlayedSuccessfully)
 		{
-			FOnMontageEnded OnMontageEndedDelegate;
-			OnMontageEndedDelegate.BindUFunction(this, InFunctionName);
-			AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, Montage);
+			return false;
 		}
+
+		FOnMontageEnded OnMontageEndedDelegate;
+		OnMontageEndedDelegate.BindUFunction(this, InFunctionName);
+		AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, Montage);
 		return true;
 	}
 	else
@@ -102,9 +105,59 @@ void AUnrealSoulsCharacter::EndSprint()
 
 void AUnrealSoulsCharacter::StartRoll()
 {
-	CacheDirection = GetActorForwardVector();
 	bIsRolling = true;
 
+	float PlayRate = 1.0f;
+	ERollOrientation RollOrientation;
+	UAnimMontage* RollMontage;
+	// If our character is not moving, we'll do a backwards roll
+	if (GetCharacterMovement()->Velocity.Length() == 0.0f)
+	{
+		RollOrientation = ERollOrientation::Backward;
+		RollMontage = RollBackwardMontage;
+	}
+	// If we're blocking, allow rolling in any direction
+	else if (bIsBlocking)
+	{
+		float ForwardDot = GetActorForwardVector().Dot(GetCharacterMovement()->Velocity);
+		float RightDot = GetActorRightVector().Dot(GetCharacterMovement()->Velocity);
+
+		bool bForwardOrBackward = ForwardDot > 0.0f;
+		bool bRightOrLeft = RightDot > 0.0f;
+		bool bForwardOrRight = FMath::Abs(ForwardDot) >= FMath::Abs(RightDot);
+
+		UAnimMontage* ForwardBackwardMontage = bForwardOrBackward ? RollForwardMontage : RollBackwardMontage;
+		UAnimMontage* RightLeftMontage = bRightOrLeft ? RollRightMontage : RollLeftMontage;
+		RollMontage = bForwardOrRight ? ForwardBackwardMontage : RightLeftMontage;
+
+		ERollOrientation ForwardBackwardDirection = bForwardOrBackward ? ERollOrientation::Forward : ERollOrientation::Backward;
+		ERollOrientation RightLeftDirection = bRightOrLeft ? ERollOrientation::Right : ERollOrientation::Left;
+		RollOrientation = bForwardOrBackward ? ForwardBackwardDirection : RightLeftDirection;
+	}
+	// Otherwise we're moving in any direction, go in that forward direction
+	else
+	{
+		RollOrientation = ERollOrientation::Forward;
+		RollMontage = RollForwardMontage;
+	}
+
+	switch (RollOrientation)
+	{
+		case ERollOrientation::Forward:
+			CacheDirection = GetActorForwardVector();
+			break;
+		case ERollOrientation::Backward:
+			CacheDirection = -GetActorForwardVector();
+			break;
+		case ERollOrientation::Right:
+			CacheDirection = GetActorRightVector();
+			break;
+		case ERollOrientation::Left:
+			CacheDirection = -GetActorRightVector();
+			break;
+	}
+
+	// Bind the Update and End callbacks for the timeline
 	FOnTimelineFloat RollUpdateCallback;
 	RollUpdateCallback.BindUFunction(this, "UpdateRoll");
 	FOnTimelineEventStatic RollCompleteCallback;
@@ -115,23 +168,36 @@ void AUnrealSoulsCharacter::StartRoll()
 
 	if (RollMontage)
 	{
-		PlayMontage(RollMontage, "EndRoll");
+		const bool bPlayedSuccessfully = PlayMontage(RollMontage, "EndRoll");
+		if (bPlayedSuccessfully)
+		{
+			ActionTimeline->PlayFromStart();
+		}
 	}
-	ActionTimeline->PlayFromStart();
 }
 
 void AUnrealSoulsCharacter::UpdateRoll(float Multiplier)
 {
-	FVector Forward = GetActorForwardVector();
-	float Distance = 1000.0f;
-	GetCharacterMovement()->Velocity = Forward * (Multiplier * Distance);
+	// If we're falling, stop rolling
+	if (GetCharacterMovement()->IsFalling())
+	{
+		// Stopping the timeline will trigger the Complete callback (calling EndRoll)
+		ActionTimeline->Stop();
+	}
+
+	// Multiply the cached direction when the roll started by the current multiplier and the roll speed
+	FVector NewVelocity = CacheDirection * Multiplier * RollSpeed;
+
+	// Make sure we can't roll in the Z direction
+	NewVelocity.Z = 0.0f;
+
+	// Update the character's velocity with the new rolling velocity
+	GetCharacterMovement()->Velocity = NewVelocity;
 }
 
 void AUnrealSoulsCharacter::EndRoll()
 {
 	bIsRolling = false;
-	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed;
-	GetCharacterMovement()->MaxAcceleration = BaseAcceleration;
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		GetCharacterMovement()->StopMovementImmediately();
@@ -142,6 +208,11 @@ void AUnrealSoulsCharacter::LightAttack()
 {
 	bIsAttacking = true;
 	PlayMontage(AttackMontage, "EndAttack");
+}
+
+void AUnrealSoulsCharacter::OnTakeDamage_Implementation(float DamageTaken)
+{
+	UE_LOG(LogTemp, Display, TEXT("Damage: %f"), DamageTaken);
 }
 
 void AUnrealSoulsCharacter::EndAttack(UAnimMontage* Montage, bool bInterrupted)
