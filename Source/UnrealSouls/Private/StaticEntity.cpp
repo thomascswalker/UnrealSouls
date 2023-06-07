@@ -12,7 +12,6 @@ AStaticEntity::AStaticEntity()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	//Mesh->SetRelativeRotation(FQuat::MakeFromEuler(FVector(0, 0, 90)));
 	Mesh->SetupAttachment(RootComponent);
 
 	Collider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collider"));
