@@ -11,6 +11,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Math/UnrealMathUtility.h"
+#include "StatusWidget.h"
+#include "Kismet/GameplayStatics.h"
+
 #include "Ladder.h"
 
 AUnrealSoulsCharacter::AUnrealSoulsCharacter()
@@ -18,10 +21,8 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 	// Actor components
 	HealthComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("HealthComponent"));
 	HealthComponent->Depleted.AddUniqueDynamic(this, &AUnrealSoulsCharacter::OnDeathStart);
-
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 
-	// Load climbing component blueprint
 	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass =
 		TSoftClassPtr<UClimbingComponent>(FSoftObjectPath(TEXT("Blueprint'/Game/Blueprints/Components/BP_ClimbingComponent.BP_ClimbingComponent_C'")));
 	UClass* LoadedClass = ClimbingComponentBPClass.LoadSynchronous();
@@ -29,10 +30,24 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 	UObject* NewClimbingComponent = CreateDefaultSubobject(TEXT("ClimbingComponent"), LoadedClass, LoadedClass, true, true);
 	ClimbingComponent = Cast<UClimbingComponent>(NewClimbingComponent);
 
-	// Load the curves
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> DefaultRollAsset(TEXT("/Game/Blueprints/Curves/C_DefaultRoll"));
 	check(DefaultRollAsset.Succeeded());
 	DefaultRollCurve = DefaultRollAsset.Object;
+
+	// Scene components
+	static ConstructorHelpers::FClassFinder<UUserWidget> HealthWidgetAsset(TEXT("/Game/Blueprints/HUD/WBP_StatusWidget"));
+	check(HealthWidgetAsset.Succeeded());
+	UClass* HealthWidgetBPClass = HealthWidgetAsset.Class;
+	HealthWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidgetComponent"));
+	HealthWidgetComponent->SetupAttachment(GetCapsuleComponent());
+	if (HealthWidgetComponent)
+	{
+		HealthWidgetComponent->SetWidgetClass(HealthWidgetBPClass);
+		HealthWidgetComponent->SetVisibility(false);
+		HealthWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+		HealthWidgetComponent->SetDrawAtDesiredSize(true);
+		HealthWidgetComponent->SetRelativeLocation(FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 2.0f));
+	}
 }
 
 void AUnrealSoulsCharacter::BeginPlay()
@@ -59,11 +74,25 @@ void AUnrealSoulsCharacter::BeginPlay()
 
 		ActionTimeline->RegisterComponent();
 	}
+
+	UStatusWidget* HealthWidget = Cast<UStatusWidget>(HealthWidgetComponent->GetWidget());
+	HealthWidget->HealthComponent = HealthComponent;
 }
 
 void AUnrealSoulsCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (HealthWidgetComponent->GetVisibleFlag())
+	{
+		float CurrentTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
+
+		// If it's been longer than 5 seconds since the last health depletion, hide the widget
+		if (CurrentTime - HealthComponent->LastDepletion > 5.0f)
+		{
+			HealthWidgetComponent->SetVisibility(false);
+		}
+	}
 }
 
 bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate)
@@ -216,6 +245,8 @@ void AUnrealSoulsCharacter::StartDamage_Implementation(float DamageTaken, AActor
 	CombatComponent->bCanTakeDamage = false;
 	const bool bPlayedSuccessfully = PlayMontage(HitMontage, "EndDamage");
 
+	HealthWidgetComponent->SetVisibility(true);
+
 	HealthComponent->Deplete(DamageTaken);
 }
 
@@ -242,6 +273,8 @@ void AUnrealSoulsCharacter::OnDeathStart()
 	{
 		AnimInstance->StopAllMontages(0.0f);
 	}
+
+	HealthWidgetComponent->SetVisibility(false);
 
 	CombatComponent->bCanTakeDamage = false;
 	const bool bPlayedSuccessfully = PlayMontage(DeathMontage, "OnDeathEnd");

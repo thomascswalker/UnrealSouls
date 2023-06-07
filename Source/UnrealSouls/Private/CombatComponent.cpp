@@ -56,6 +56,11 @@ TOptional<FVector> UCombatComponent::GetAttackTraceEnd()
 	return GetSocketLocation("hand_rSocket");
 }
 
+float UCombatComponent::GetBaseDamage()
+{
+	return 20.0f;
+}
+
 void UCombatComponent::OnAttackStart_Implementation()
 {
 	// https://www.tomlooman.com/unreal-engine-cpp-timers/
@@ -96,7 +101,7 @@ void UCombatComponent::OnAttackHit_Implementation(AActor* HitActor)
 	FString Message = FString::Printf(TEXT("Attacking: %s"), *HitActor->GetName());
 	GEngine->AddOnScreenDebugMessage(1, AttackTraceRate, FColor::Green, Message);
 
-	IAttackable::Execute_StartDamage(HitActor, 50.0f, GetOwner());
+	IAttackable::Execute_StartDamage(HitActor, GetBaseDamage(), GetOwner());
 }
 
 void UCombatComponent::AttackEnd_Implementation()

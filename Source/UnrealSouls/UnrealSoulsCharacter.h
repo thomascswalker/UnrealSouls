@@ -13,6 +13,7 @@
 #include "StatusComponent.h"
 #include "CombatComponent.h"
 #include "Public/Attackable.h"
+#include "Components/WidgetComponent.h"
 
 #include "UnrealSoulsCharacter.generated.h"
 
@@ -47,6 +48,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCombatComponent> CombatComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UWidgetComponent> HealthWidgetComponent; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UTimelineComponent> ActionTimeline;

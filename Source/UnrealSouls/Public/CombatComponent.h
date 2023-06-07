@@ -19,6 +19,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanTakeDamage = true;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanDealDamage = false;
+
 public:
 	// Sets default values for this component's properties
 	UCombatComponent();
@@ -34,6 +37,9 @@ public:
 	TOptional<FVector> GetSocketLocation(FName SocketName);
 	TOptional<FVector> GetAttackTraceStart();
 	TOptional<FVector> GetAttackTraceEnd();
+
+	UFUNCTION(BlueprintCallable)
+	float GetBaseDamage();
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void OnAttackStart();
