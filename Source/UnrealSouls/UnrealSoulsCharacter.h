@@ -7,14 +7,32 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
 #include "Components/BoxComponent.h"
+#include "Components/TimelineComponent.h"
 #include "Public/ClimbingComponent.h"
-
+#include "Public/Targetable.h"
 #include "StatusComponent.h"
 
 #include "UnrealSoulsCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EFaction : uint8
+{
+	Passive,
+	Neutral,
+	Aggressive
+};
+
+UENUM(BlueprintType)
+enum class ERollOrientation : uint8
+{
+	Forward,
+	Backward,
+	Left,
+	Right
+};
+
 UCLASS(config = Game)
-class AUnrealSoulsCharacter : public ACharacter
+class AUnrealSoulsCharacter : public ACharacter, public ITargetable
 {
 	GENERATED_BODY()
 
@@ -24,6 +42,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UClimbingComponent> ClimbingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UTimelineComponent> ActionTimeline;
 
 	FVector CacheDirection;
 
@@ -44,7 +65,7 @@ public:
 	float BaseAcceleration = 1500.0f;
 
 	float RollSpeed = 1000.0f;
-	float RollAcceleration = 3000.0f;
+	FVector RollDirection;
 
 	float SprintSpeed = 600.0f;
 	float SprintAcceleration = 2500.0f;
@@ -53,13 +74,41 @@ public:
 	float WalkAcceleration = 500.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RollMontage;
+	UAnimMontage* RollForwardMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RollBackwardMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RollRightMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RollLeftMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	EFaction Faction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAttacking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsBlocking = false;
+
+	UPROPERTY()
+	UCurveFloat* DefaultRollCurve;
 
 public:
 	AUnrealSoulsCharacter();
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 public:
+	UFUNCTION(BlueprintCallable)
+	bool PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate = 1.0f);
+
 	UFUNCTION(BlueprintCallable)
 	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
 
@@ -86,5 +135,28 @@ public:
 	virtual void StartRoll();
 
 	UFUNCTION(BlueprintCallable)
+	virtual void UpdateRoll(float Multiplier);
+
+	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
+
+	// Attacking
+
+	UFUNCTION(BlueprintCallable)
+	virtual void LightAttack();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void HeavyAttack() {}
+
+	UFUNCTION(BlueprintCallable)
+	virtual void EndAttack(UAnimMontage* Montage, bool bInterrupted);
+
+	// Blocking
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool Block() { return false; }
+
+	// Damage
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnTakeDamage(float DamageTaken);
 };

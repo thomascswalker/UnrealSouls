@@ -2,6 +2,9 @@
 
 #include "UnrealSoulsPlayerController.h"
 
+#include "Kismet/KismetMathLibrary.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+
 AUnrealSoulsPlayerController::AUnrealSoulsPlayerController() {}
 
 void AUnrealSoulsPlayerController::BeginPlay()
@@ -15,6 +18,36 @@ void AUnrealSoulsPlayerController::BeginPlay()
 	{
 		Subsystem->ClearAllMappings();
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+	}
+}
+
+void AUnrealSoulsPlayerController::Tick(float DeltaTime)
+{
+	if (CurrentTarget.GetObject() != nullptr)
+	{
+		AActor* TargetActor = Cast<AActor>(CurrentTarget.GetObject());
+		if (TargetActor)
+		{
+			// If we're blocking, rotate towards the target
+			if (PlayerCharacter->bIsBlocking)
+			{
+				// Get the LookAt rotation from the player to the target
+				// Rotate the controller
+				FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(PlayerCharacter->GetActorLocation(), TargetActor->GetActorLocation());
+				SetControlRotation(LookAt);
+
+				// Rotate the player, but only the Yaw
+				PlayerCharacter->GetCapsuleComponent()->SetWorldRotation(FRotator(0.0f, LookAt.Yaw, 0.0f));
+			}
+
+			// Get the 2D Coordinates of the new target location
+			FVector2D ScreenLocation;
+			const bool bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(this, TargetActor->GetActorLocation(), ScreenLocation, true);
+			if (bProjected)
+			{
+				TargetLocationChanged.Broadcast(ScreenLocation);
+			}
+		}
 	}
 }
 
@@ -44,6 +77,16 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 
 		// Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnInteractTriggered);
+
+		// Target
+		EnhancedInputComponent->BindAction(TargetAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnTargetTriggered);
+
+		// Attacking
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnAttackTriggered);
+
+		// Blocking
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this, &AUnrealSoulsPlayerController::OnBlockTriggered);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &AUnrealSoulsPlayerController::OnBlockCompleted);
 	}
 }
 
@@ -56,8 +99,8 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 		return;
 	}
 
-	// Disable movement while falling
-	if (Movement->IsFalling())
+	// Disallow movement while attacking, rolling, or falling
+	if (Movement->IsFalling() || PlayerCharacter->bIsAttacking || PlayerCharacter->bIsRolling)
 	{
 		return;
 	}
@@ -92,6 +135,11 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 
 void AUnrealSoulsPlayerController::OnLookTriggered(const FInputActionValue& ActionValue)
 {
+	// If we're currently targeting something AND blocking, don't allow looking around
+	if (CurrentTarget.GetObject() != nullptr && PlayerCharacter->bIsBlocking)
+	{
+		return;
+	}
 	FVector2D LookVector = ActionValue.Get<FVector2D>();
 
 	// Multiply the look input vector by the look sensitivity
@@ -132,6 +180,78 @@ void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& 
 	{
 		IInteractive::Execute_Interact(CurrentInteractiveEntity.GetObject(), PlayerCharacter);
 	}
+}
+
+void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& ActionValue)
+{
+	if (CurrentTarget.GetObject() != nullptr)
+	{
+		CurrentTarget.SetObject(nullptr);
+		TargetVisibilityChanged.Broadcast(false);
+		return;
+	}
+
+	// Get the start and end locations of our sweep trace
+	float TraceRadius = 200.0f;
+	FVector SweepStart = PlayerCharacter->GetActorLocation();
+
+	// Find out which way is forward
+	const FRotator Rotation = GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// Get forward vector
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	// Sweep out from the character in the direction of the camera
+	FVector SweepEnd = PlayerCharacter->GetActorLocation() + (ForwardDirection * TargetDistance);
+	TArray<FHitResult> OutHits;
+
+	// Build query params, ignoring the player character
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(PlayerCharacter);
+
+	// Create our sphere collision shape
+	FCollisionShape SphereTrace = FCollisionShape::MakeSphere(TraceRadius);
+
+	// Do the trace, exiting if we hit nothing
+	const bool bHitResult = GetWorld()->SweepMultiByChannel(OutHits, SweepStart, SweepEnd, FQuat::Identity, ECC_Pawn, SphereTrace, QueryParams);
+	if (!bHitResult)
+	{
+		return;
+	}
+
+	AActor* ClosestActor = nullptr;
+	for (FHitResult& Hit : OutHits)
+	{
+		// Is this a valid targetable pawn?
+		ITargetable* TargetPawn = Cast<ITargetable>(Hit.GetActor());
+		if (!TargetPawn)
+		{
+			continue;
+		}
+
+		CurrentTarget.SetObject(Hit.GetActor());
+		TargetVisibilityChanged.Broadcast(true);
+		return;
+	}
+}
+
+void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& ActionValue)
+{
+	if (!PlayerCharacter->bIsAttacking)
+	{
+		PlayerCharacter->LightAttack();
+	}
+}
+
+void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& ActionValue)
+{
+	PlayerCharacter->bIsBlocking = true;
+}
+
+void AUnrealSoulsPlayerController::OnBlockCompleted(const FInputActionValue& ActionValue)
+{
+	PlayerCharacter->bIsBlocking = false;
 }
 
 void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}
