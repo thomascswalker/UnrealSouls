@@ -45,7 +45,6 @@ AUnrealSoulsPlayerCharacter::AUnrealSoulsPlayerCharacter()
 	StaminaComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("StaminaComponent"));
 	if (StaminaComponent)
 	{
-		StaminaComponent->SetupAttachment(RootComponent);
 		StaminaComponent->bAutoReplenish = true;
 		StaminaComponent->ReplenishRate = StaminaReplenishRate;
 		StaminaComponent->ReplenishDelay = StaminaReplenishDelay;

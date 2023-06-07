@@ -11,6 +11,8 @@
 #include "Public/ClimbingComponent.h"
 #include "Public/Targetable.h"
 #include "StatusComponent.h"
+#include "CombatComponent.h"
+#include "Public/Attackable.h"
 
 #include "UnrealSoulsCharacter.generated.h"
 
@@ -32,7 +34,7 @@ enum class ERollOrientation : uint8
 };
 
 UCLASS(config = Game)
-class AUnrealSoulsCharacter : public ACharacter, public ITargetable
+class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAttackable
 {
 	GENERATED_BODY()
 
@@ -42,6 +44,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UClimbingComponent> ClimbingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UCombatComponent> CombatComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UTimelineComponent> ActionTimeline;
@@ -87,6 +92,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* HitMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* DeathMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	EFaction Faction;
@@ -158,5 +169,18 @@ public:
 
 	// Damage
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void OnTakeDamage(float DamageTaken);
+	void StartDamage(float DamageTaken, AActor* Attacker);
+
+	UFUNCTION()
+	void EndDamage(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool CanTakeDamage();
+
+	// Death
+	UFUNCTION()
+	void OnDeathStart();
+
+	UFUNCTION()
+	void OnDeathEnd(UAnimMontage* Montage, bool bInterrupted);
 };

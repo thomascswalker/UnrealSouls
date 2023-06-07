@@ -15,11 +15,11 @@
 
 AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 {
+	// Actor components
 	HealthComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("HealthComponent"));
-	if (HealthComponent)
-	{
-		HealthComponent->SetupAttachment(RootComponent);
-	}
+	HealthComponent->Depleted.AddUniqueDynamic(this, &AUnrealSoulsCharacter::OnDeathStart);
+
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 
 	// Load climbing component blueprint
 	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass =
@@ -208,14 +208,46 @@ void AUnrealSoulsCharacter::LightAttack()
 {
 	bIsAttacking = true;
 	PlayMontage(AttackMontage, "EndAttack");
+	CombatComponent->OnAttackStart();
 }
 
-void AUnrealSoulsCharacter::OnTakeDamage_Implementation(float DamageTaken)
+void AUnrealSoulsCharacter::StartDamage_Implementation(float DamageTaken, AActor* Attacker)
 {
-	UE_LOG(LogTemp, Display, TEXT("Damage: %f"), DamageTaken);
+	CombatComponent->bCanTakeDamage = false;
+	const bool bPlayedSuccessfully = PlayMontage(HitMontage, "EndDamage");
+
+	HealthComponent->Deplete(DamageTaken);
+}
+
+void AUnrealSoulsCharacter::EndDamage(UAnimMontage* Montage, bool bInterrupted)
+{
+	CombatComponent->bCanTakeDamage = true;
+}
+
+bool AUnrealSoulsCharacter::CanTakeDamage_Implementation()
+{
+	return CombatComponent->bCanTakeDamage && HealthComponent->Value > 0.0f;
 }
 
 void AUnrealSoulsCharacter::EndAttack(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsAttacking = false;
+	CombatComponent->AttackEnd();
+}
+
+void AUnrealSoulsCharacter::OnDeathStart()
+{
+	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
+	if (AnimInstance)
+	{
+		AnimInstance->StopAllMontages(0.0f);
+	}
+
+	CombatComponent->bCanTakeDamage = false;
+	const bool bPlayedSuccessfully = PlayMontage(DeathMontage, "OnDeathEnd");
+}
+
+void AUnrealSoulsCharacter::OnDeathEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	Destroy();
 }
