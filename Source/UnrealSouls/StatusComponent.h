@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SceneComponent.h"
+#include "Components/ActorComponent.h"
 #include "StatusComponent.generated.h"
 
 UCLASS(Blueprintable, meta = (BlueprintSpawnableComponent))
-class UNREALSOULS_API UStatusComponent : public USceneComponent
+class UNREALSOULS_API UStatusComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
