@@ -9,8 +9,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/InputSettings.h"
-#include "Public/Interactive.h"
-#include "Public/Targetable.h"
+#include "Interactive.h"
+#include "Targetable.h"
 
 #include "UnrealSoulsPlayerController.generated.h"
 

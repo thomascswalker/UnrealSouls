@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "../StatusComponent.h"
+#include "StatusComponent.h"
 
 #include "StatusWidget.generated.h"
 

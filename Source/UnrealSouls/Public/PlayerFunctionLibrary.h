@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "../UnrealSoulsPlayerController.h"
+#include "UnrealSoulsPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 #include "PlayerFunctionLibrary.generated.h"

@@ -2,7 +2,7 @@
 
 
 #include "AttackWindowNotify.h"
-#include "../UnrealSoulsCharacter.h"
+#include "UnrealSoulsCharacter.h"
 
 bool UAttackWindowNotify::Received_Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

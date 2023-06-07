@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StaticEntity.h"
-#include "UnrealSouls/UnrealSoulsPlayerCharacter.h"
-#include "UnrealSouls/UnrealSoulsPlayerController.h"
+#include "UnrealSoulsPlayerCharacter.h"
+#include "UnrealSoulsPlayerController.h"
 #include "Components/SceneComponent.h"
 
 // Sets default values
