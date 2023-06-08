@@ -106,12 +106,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	EFaction Faction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-	bool bIsAttacking = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-	bool bIsBlocking = false;
-
 	UPROPERTY()
 	UCurveFloat* DefaultRollCurve;
 
@@ -121,8 +115,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	UCombatComponent* GetCombatComponent();
+
 	UFUNCTION(BlueprintCallable)
-	bool PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate = 1.0f);
+	bool PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName, float PlayRate = 1.0f);
 
 	UFUNCTION(BlueprintCallable)
 	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
@@ -154,37 +151,4 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
-
-	// Attacking
-
-	UFUNCTION(BlueprintCallable)
-	virtual void LightAttack();
-
-	UFUNCTION(BlueprintCallable)
-	virtual void HeavyAttack() {}
-
-	UFUNCTION(BlueprintCallable)
-	virtual void EndAttack(UAnimMontage* Montage, bool bInterrupted);
-
-	// Blocking
-
-	UFUNCTION(BlueprintCallable)
-	virtual bool Block() { return false; }
-
-	// Damage
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void StartDamage(float DamageTaken, AActor* Attacker);
-
-	UFUNCTION()
-	void EndDamage(UAnimMontage* Montage, bool bInterrupted);
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool CanTakeDamage();
-
-	// Death
-	UFUNCTION()
-	void OnDeathStart();
-
-	UFUNCTION()
-	void OnDeathEnd(UAnimMontage* Montage, bool bInterrupted);
 };

@@ -19,7 +19,6 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 {
 	// Actor components
 	HealthComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("HealthComponent"));
-	HealthComponent->Depleted.AddUniqueDynamic(this, &AUnrealSoulsCharacter::OnDeathStart);
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 
 	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass = TSoftClassPtr<UClimbingComponent>(
@@ -74,8 +73,12 @@ void AUnrealSoulsCharacter::BeginPlay()
 		ActionTimeline->RegisterComponent();
 	}
 
+	// Bind the health component of this actor to the health widget
 	UStatusWidget* HealthWidget = Cast<UStatusWidget>(HealthWidgetComponent->GetWidget());
 	HealthWidget->HealthComponent = HealthComponent;
+
+	// Bind the health component's depleted event to the combat component's death start
+	HealthComponent->Depleted.AddUniqueDynamic(CombatComponent, &UCombatComponent::OnDeathStart);
 }
 
 void AUnrealSoulsCharacter::Tick(float DeltaTime)
@@ -94,7 +97,12 @@ void AUnrealSoulsCharacter::Tick(float DeltaTime)
 	}
 }
 
-bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate)
+UCombatComponent* AUnrealSoulsCharacter::GetCombatComponent_Implementation()
+{
+	return CombatComponent;
+}
+
+bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName, float PlayRate)
 {
 	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
 	if (Montage && AnimInstance)
@@ -107,7 +115,7 @@ bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, const FName InFun
 		}
 
 		FOnMontageEnded OnMontageEndedDelegate;
-		OnMontageEndedDelegate.BindUFunction(this, InFunctionName);
+		OnMontageEndedDelegate.BindUFunction(InObject, InFunctionName);
 		AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, Montage);
 		return true;
 	}
@@ -145,7 +153,7 @@ void AUnrealSoulsCharacter::StartRoll()
 		RollMontage = RollBackwardMontage;
 	}
 	// If we're blocking, allow rolling in any direction
-	else if (bIsBlocking)
+	else if (CombatComponent->IsBlocking())
 	{
 		float ForwardDot = GetActorForwardVector().Dot(GetCharacterMovement()->Velocity);
 		float RightDot = GetActorRightVector().Dot(GetCharacterMovement()->Velocity);
@@ -196,7 +204,7 @@ void AUnrealSoulsCharacter::StartRoll()
 
 	if (RollMontage)
 	{
-		const bool bPlayedSuccessfully = PlayMontage(RollMontage, "EndRoll");
+		const bool bPlayedSuccessfully = PlayMontage(RollMontage, this, "EndRoll");
 		if (bPlayedSuccessfully)
 		{
 			ActionTimeline->PlayFromStart();
@@ -230,56 +238,4 @@ void AUnrealSoulsCharacter::EndRoll()
 	{
 		GetCharacterMovement()->StopMovementImmediately();
 	}
-}
-
-void AUnrealSoulsCharacter::LightAttack()
-{
-	bIsAttacking = true;
-	PlayMontage(AttackMontage, "EndAttack");
-	CombatComponent->OnAttackStart();
-}
-
-void AUnrealSoulsCharacter::StartDamage_Implementation(float DamageTaken, AActor* Attacker)
-{
-	CombatComponent->bCanTakeDamage = false;
-	const bool bPlayedSuccessfully = PlayMontage(HitMontage, "EndDamage");
-
-	HealthWidgetComponent->SetVisibility(true);
-
-	HealthComponent->Deplete(DamageTaken);
-}
-
-void AUnrealSoulsCharacter::EndDamage(UAnimMontage* Montage, bool bInterrupted)
-{
-	CombatComponent->bCanTakeDamage = true;
-}
-
-bool AUnrealSoulsCharacter::CanTakeDamage_Implementation()
-{
-	return CombatComponent->bCanTakeDamage && HealthComponent->Value > 0.0f;
-}
-
-void AUnrealSoulsCharacter::EndAttack(UAnimMontage* Montage, bool bInterrupted)
-{
-	bIsAttacking = false;
-	CombatComponent->AttackEnd();
-}
-
-void AUnrealSoulsCharacter::OnDeathStart()
-{
-	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
-	if (AnimInstance)
-	{
-		AnimInstance->StopAllMontages(0.0f);
-	}
-
-	HealthWidgetComponent->SetVisibility(false);
-
-	CombatComponent->bCanTakeDamage = false;
-	const bool bPlayedSuccessfully = PlayMontage(DeathMontage, "OnDeathEnd");
-}
-
-void AUnrealSoulsCharacter::OnDeathEnd(UAnimMontage* Montage, bool bInterrupted)
-{
-	Destroy();
 }
