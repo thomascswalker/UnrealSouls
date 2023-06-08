@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "CoreMinimal.h"
+
 #include "CombatComponent.generated.h"
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -13,7 +14,6 @@ class UNREALSOULS_API UCombatComponent : public UActorComponent
 
 	FTimerHandle AttackTimerHandle;
 	float AttackTraceRate = 0.05f;
-
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

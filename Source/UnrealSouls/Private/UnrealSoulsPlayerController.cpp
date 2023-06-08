@@ -2,8 +2,8 @@
 
 #include "UnrealSoulsPlayerController.h"
 
-#include "Kismet/KismetMathLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AUnrealSoulsPlayerController::AUnrealSoulsPlayerController() {}
 
@@ -42,7 +42,8 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
 
 			// Get the 2D Coordinates of the new target location
 			FVector2D ScreenLocation;
-			const bool bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(this, TargetActor->GetActorLocation(), ScreenLocation, true);
+			const bool bProjected =
+				UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(this, TargetActor->GetActorLocation(), ScreenLocation, true);
 			if (bProjected)
 			{
 				TargetLocationChanged.Broadcast(ScreenLocation);

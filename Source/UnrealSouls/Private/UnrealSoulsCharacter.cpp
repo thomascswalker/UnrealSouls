@@ -4,17 +4,16 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Ladder.h"
 #include "Math/UnrealMathUtility.h"
 #include "StatusWidget.h"
-#include "Kismet/GameplayStatics.h"
-
-#include "Ladder.h"
 
 AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 {
@@ -23,8 +22,8 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 	HealthComponent->Depleted.AddUniqueDynamic(this, &AUnrealSoulsCharacter::OnDeathStart);
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 
-	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass =
-		TSoftClassPtr<UClimbingComponent>(FSoftObjectPath(TEXT("Blueprint'/Game/Blueprints/Components/BP_ClimbingComponent.BP_ClimbingComponent_C'")));
+	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass = TSoftClassPtr<UClimbingComponent>(
+		FSoftObjectPath(TEXT("Blueprint'/Game/Blueprints/Components/BP_ClimbingComponent.BP_ClimbingComponent_C'")));
 	UClass* LoadedClass = ClimbingComponentBPClass.LoadSynchronous();
 	LoadedClass->AddToRoot();
 	UObject* NewClimbingComponent = CreateDefaultSubobject(TEXT("ClimbingComponent"), LoadedClass, LoadedClass, true, true);

@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CombatComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Attackable.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -83,8 +83,8 @@ void UCombatComponent::OnAttackTrace_Implementation()
 	ActorsToIgnore.Add(GetOwner());
 
 	float Length = (Start - End).Length();
-	const bool bHitSuccessful = UKismetSystemLibrary::CapsuleTraceSingle(
-		this, Start, End, 25.0f, Length, UEngineTypes::ConvertToTraceType(ECC_Pawn), true, ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHit, true, FLinearColor::Red, FLinearColor::Green, 0.1f);
+	const bool bHitSuccessful = UKismetSystemLibrary::CapsuleTraceSingle(this, Start, End, 25.0f, Length, UEngineTypes::ConvertToTraceType(ECC_Pawn),
+		true, ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHit, true, FLinearColor::Red, FLinearColor::Green, 0.1f);
 
 	if (bHitSuccessful)
 	{
