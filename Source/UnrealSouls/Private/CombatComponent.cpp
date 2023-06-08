@@ -56,6 +56,16 @@ TOptional<FVector> UCombatComponent::GetAttackTraceEnd()
 	return GetSocketLocation("hand_rSocket");
 }
 
+FCombatData UCombatComponent::GetData()
+{
+	FCombatData OutData;
+	OutData.bCanDealDamage = bCanDealDamage;
+	OutData.bCanTakeDamage = bCanTakeDamage;
+	OutData.bIsAttacking = bIsAttacking;
+	OutData.bIsBlocking = bIsBlocking;
+	return OutData;
+}
+
 float UCombatComponent::GetBaseDamage()
 {
 	return 20.0f;
@@ -70,6 +80,7 @@ void UCombatComponent::OnAttackStart_Implementation()
 		GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
 	}
 	GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UCombatComponent::OnAttackTrace, AttackTraceRate, true);
+	AttackStarted.Broadcast();
 }
 
 void UCombatComponent::OnAttackTrace_Implementation()
@@ -101,10 +112,13 @@ void UCombatComponent::OnAttackHit_Implementation(AActor* HitActor)
 	FString Message = FString::Printf(TEXT("Attacking: %s"), *HitActor->GetName());
 	GEngine->AddOnScreenDebugMessage(1, AttackTraceRate, FColor::Green, Message);
 
+	UCombatComponent* OtherComponent = IAttackable::Execute_GetCombatComponent(HitActor);
 	IAttackable::Execute_StartDamage(HitActor, GetBaseDamage(), GetOwner());
+	AttackHit.Broadcast();
 }
 
-void UCombatComponent::AttackEnd_Implementation()
+void UCombatComponent::OnAttackEnd_Implementation()
 {
 	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+	AttackEnded.Broadcast();
 }

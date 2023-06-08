@@ -29,7 +29,7 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
 		if (TargetActor)
 		{
 			// If we're blocking, rotate towards the target
-			if (PlayerCharacter->bIsBlocking)
+			if (PlayerCharacter->CombatComponent->bIsBlocking)
 			{
 				// Get the LookAt rotation from the player to the target
 				// Rotate the controller
@@ -101,7 +101,7 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 	}
 
 	// Disallow movement while attacking, rolling, or falling
-	if (Movement->IsFalling() || PlayerCharacter->bIsAttacking || PlayerCharacter->bIsRolling)
+	if (Movement->IsFalling() || PlayerCharacter->CombatComponent->bIsAttacking || PlayerCharacter->bIsRolling)
 	{
 		return;
 	}
@@ -137,7 +137,7 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 void AUnrealSoulsPlayerController::OnLookTriggered(const FInputActionValue& ActionValue)
 {
 	// If we're currently targeting something AND blocking, don't allow looking around
-	if (CurrentTarget.GetObject() != nullptr && PlayerCharacter->bIsBlocking)
+	if (CurrentTarget.GetObject() != nullptr && PlayerCharacter->CombatComponent->bIsBlocking)
 	{
 		return;
 	}
@@ -239,7 +239,7 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 
 void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& ActionValue)
 {
-	if (!PlayerCharacter->bIsAttacking)
+	if (!PlayerCharacter->CombatComponent->bIsAttacking)
 	{
 		PlayerCharacter->LightAttack();
 	}
@@ -247,12 +247,12 @@ void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& Ac
 
 void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& ActionValue)
 {
-	PlayerCharacter->bIsBlocking = true;
+	PlayerCharacter->CombatComponent->bIsBlocking = true;
 }
 
 void AUnrealSoulsPlayerController::OnBlockCompleted(const FInputActionValue& ActionValue)
 {
-	PlayerCharacter->bIsBlocking = false;
+	PlayerCharacter->CombatComponent->bIsBlocking = false;
 }
 
 void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}

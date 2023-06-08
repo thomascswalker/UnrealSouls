@@ -7,6 +7,24 @@
 
 #include "CombatComponent.generated.h"
 
+USTRUCT(BlueprintType)
+struct FCombatData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAttacking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsBlocking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bCanTakeDamage = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bCanDealDamage = false;
+};
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class UNREALSOULS_API UCombatComponent : public UActorComponent
 {
@@ -16,11 +34,29 @@ class UNREALSOULS_API UCombatComponent : public UActorComponent
 	float AttackTraceRate = 0.05f;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAttacking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsBlocking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bCanTakeDamage = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bCanDealDamage = false;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAttackStarted);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FAttackStarted AttackStarted;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAttackEnded);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FAttackEnded AttackEnded;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAttackHit);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FAttackHit AttackHit;
 
 public:
 	// Sets default values for this component's properties
@@ -39,6 +75,9 @@ public:
 	TOptional<FVector> GetAttackTraceEnd();
 
 	UFUNCTION(BlueprintCallable)
+	FCombatData GetData();
+
+	UFUNCTION(BlueprintCallable)
 	float GetBaseDamage();
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
@@ -51,5 +90,5 @@ public:
 	void OnAttackHit(AActor* HitActor);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void AttackEnd();
+	void OnAttackEnd();
 };

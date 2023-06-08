@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "StatusComponent.h"
+#include "CombatComponent.h"
 
 #include "Attackable.generated.h"
 
@@ -29,4 +30,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool CanTakeDamage();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	UCombatComponent* GetCombatComponent();
 };
