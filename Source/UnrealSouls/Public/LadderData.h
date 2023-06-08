@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 
-#include "..\UnrealSoulsCharacter.h"
+#include "UnrealSoulsCharacter.h"
 #include "LadderStates.h"
 #include "Ladder.h"
 

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "../StatusComponent.h"
+#include "StatusComponent.h"
 
 #include "Attackable.generated.h"
 

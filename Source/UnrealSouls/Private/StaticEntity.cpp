@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StaticEntity.h"
-#include "UnrealSouls/UnrealSoulsPlayerCharacter.h"
-#include "UnrealSouls/UnrealSoulsPlayerController.h"
+#include "UnrealSoulsPlayerCharacter.h"
+#include "UnrealSoulsPlayerController.h"
 #include "Components/SceneComponent.h"
 
 // Sets default values
@@ -12,7 +12,6 @@ AStaticEntity::AStaticEntity()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	//Mesh->SetRelativeRotation(FQuat::MakeFromEuler(FVector(0, 0, 90)));
 	Mesh->SetupAttachment(RootComponent);
 
 	Collider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collider"));
