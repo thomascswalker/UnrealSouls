@@ -152,31 +152,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
 
-	// Attacking
-
-	UFUNCTION(BlueprintCallable)
-	virtual void LightAttack();
-
-	UFUNCTION(BlueprintCallable)
-	virtual void HeavyAttack() {}
-
-	UFUNCTION(BlueprintCallable)
-	virtual void EndAttack(UAnimMontage* Montage, bool bInterrupted);
-
 	// Blocking
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool Block() { return false; }
-
-	// Damage
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void StartDamage(float DamageTaken, AActor* Attacker);
-
-	UFUNCTION()
-	void EndDamage(UAnimMontage* Montage, bool bInterrupted);
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool CanTakeDamage();
 
 	// Death
 	UFUNCTION()

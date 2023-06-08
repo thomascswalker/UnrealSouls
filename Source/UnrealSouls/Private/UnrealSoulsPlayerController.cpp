@@ -241,7 +241,7 @@ void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& Ac
 {
 	if (!PlayerCharacter->CombatComponent->bIsAttacking)
 	{
-		PlayerCharacter->LightAttack();
+		PlayerCharacter->CombatComponent->OnAttackStart();
 	}
 }
 

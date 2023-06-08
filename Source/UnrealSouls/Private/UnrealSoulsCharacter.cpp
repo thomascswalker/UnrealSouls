@@ -237,39 +237,6 @@ void AUnrealSoulsCharacter::EndRoll()
 	}
 }
 
-void AUnrealSoulsCharacter::LightAttack()
-{
-	CombatComponent->bIsAttacking = true;
-	PlayMontage(AttackMontage, this, "EndAttack");
-	CombatComponent->OnAttackStart();
-}
-
-void AUnrealSoulsCharacter::StartDamage_Implementation(float DamageTaken, AActor* Attacker)
-{
-	CombatComponent->bCanTakeDamage = false;
-	const bool bPlayedSuccessfully = PlayMontage(HitMontage, this, "EndDamage");
-
-	HealthWidgetComponent->SetVisibility(true);
-
-	HealthComponent->Deplete(DamageTaken);
-}
-
-void AUnrealSoulsCharacter::EndDamage(UAnimMontage* Montage, bool bInterrupted)
-{
-	CombatComponent->bCanTakeDamage = true;
-}
-
-bool AUnrealSoulsCharacter::CanTakeDamage_Implementation()
-{
-	return CombatComponent->bCanTakeDamage && HealthComponent->Value > 0.0f;
-}
-
-void AUnrealSoulsCharacter::EndAttack(UAnimMontage* Montage, bool bInterrupted)
-{
-	CombatComponent->bIsAttacking = false;
-	CombatComponent->OnAttackEnd();
-}
-
 void AUnrealSoulsCharacter::OnDeathStart()
 {
 	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;

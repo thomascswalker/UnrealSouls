@@ -70,15 +70,28 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	// Utility
+
 	TOptional<FVector> GetSocketLocation(FName SocketName);
 	TOptional<FVector> GetAttackTraceStart();
 	TOptional<FVector> GetAttackTraceEnd();
+
+	// Functions
 
 	UFUNCTION(BlueprintCallable)
 	FCombatData GetData();
 
 	UFUNCTION(BlueprintCallable)
 	float GetBaseDamage();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool CanTakeDamage();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnTakeDamageStart(float DamageTaken, AActor* Attacker);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnTakeDamageEnd(UAnimMontage* Montage, bool bInterrupted);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void OnAttackStart();

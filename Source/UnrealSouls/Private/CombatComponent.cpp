@@ -3,6 +3,7 @@
 #include "CombatComponent.h"
 #include "Attackable.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "UnrealSoulsCharacter.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -68,11 +69,37 @@ FCombatData UCombatComponent::GetData()
 
 float UCombatComponent::GetBaseDamage()
 {
-	return 20.0f;
+	return 50.0f;
+}
+
+bool UCombatComponent::CanTakeDamage_Implementation()
+{
+	AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(GetOwner());
+	float CurrentHealth = Character->HealthComponent->Value;
+	return bCanTakeDamage && CurrentHealth > 0.0f;
+}
+
+void UCombatComponent::OnTakeDamageStart_Implementation(float DamageTaken, AActor* Attacker)
+{
+	bCanTakeDamage = false;
+
+	AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(GetOwner());
+	const bool bPlayedSuccessfully = Character->PlayMontage(Character->HitMontage, this, "OnTakeDamageEnd");
+
+	Character->HealthWidgetComponent->SetVisibility(true);
+	Character->HealthComponent->Deplete(DamageTaken);
+}
+
+void UCombatComponent::OnTakeDamageEnd_Implementation(UAnimMontage* Montage, bool bInterrupted)
+{
+	bCanTakeDamage = true;
 }
 
 void UCombatComponent::OnAttackStart_Implementation()
 {
+	// Start attacking
+	bIsAttacking = true;
+
 	// https://www.tomlooman.com/unreal-engine-cpp-timers/
 	// Start a trace to loop the tracing of our attack
 	if (AttackTimerHandle.IsValid())
@@ -80,6 +107,12 @@ void UCombatComponent::OnAttackStart_Implementation()
 		GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
 	}
 	GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UCombatComponent::OnAttackTrace, AttackTraceRate, true);
+
+	// Play the attacking montage
+	AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(GetOwner());
+	Character->PlayMontage(Character->AttackMontage, this, "OnAttackEnd");
+
+	// Broadcast that we've begun attacking
 	AttackStarted.Broadcast();
 }
 
@@ -99,10 +132,10 @@ void UCombatComponent::OnAttackTrace_Implementation()
 
 	if (bHitSuccessful)
 	{
-		IAttackable* HitActor = Cast<IAttackable>(OutHit.GetActor());
-		if (HitActor && IAttackable::Execute_CanTakeDamage(OutHit.GetActor()))
+		UCombatComponent* OtherComp = IAttackable::Execute_GetCombatComponent(OutHit.GetActor());
+		if (OtherComp && OtherComp->CanTakeDamage())
 		{
-			OnAttackHit(OutHit.GetActor());
+			OtherComp->OnTakeDamageStart(GetBaseDamage(), GetOwner());
 		}
 	}
 }
@@ -119,6 +152,7 @@ void UCombatComponent::OnAttackHit_Implementation(AActor* HitActor)
 
 void UCombatComponent::OnAttackEnd_Implementation()
 {
+	bIsAttacking = false;
 	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
 	AttackEnded.Broadcast();
 }
