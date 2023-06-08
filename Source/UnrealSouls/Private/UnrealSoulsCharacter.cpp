@@ -95,7 +95,7 @@ void AUnrealSoulsCharacter::Tick(float DeltaTime)
 	}
 }
 
-bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate)
+bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName, float PlayRate)
 {
 	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
 	if (Montage && AnimInstance)
@@ -108,7 +108,7 @@ bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, const FName InFun
 		}
 
 		FOnMontageEnded OnMontageEndedDelegate;
-		OnMontageEndedDelegate.BindUFunction(this, InFunctionName);
+		OnMontageEndedDelegate.BindUFunction(InObject, InFunctionName);
 		AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, Montage);
 		return true;
 	}
@@ -197,7 +197,7 @@ void AUnrealSoulsCharacter::StartRoll()
 
 	if (RollMontage)
 	{
-		const bool bPlayedSuccessfully = PlayMontage(RollMontage, "EndRoll");
+		const bool bPlayedSuccessfully = PlayMontage(RollMontage, this, "EndRoll");
 		if (bPlayedSuccessfully)
 		{
 			ActionTimeline->PlayFromStart();
@@ -235,15 +235,13 @@ void AUnrealSoulsCharacter::EndRoll()
 
 void AUnrealSoulsCharacter::LightAttack()
 {
-	bIsAttacking = true;
-	PlayMontage(AttackMontage, "EndAttack");
-	CombatComponent->OnAttackStart();
+	CombatComponent->Attack(EAttackType::Light);
 }
 
 void AUnrealSoulsCharacter::StartDamage_Implementation(float DamageTaken, AActor* Attacker)
 {
 	CombatComponent->bCanTakeDamage = false;
-	const bool bPlayedSuccessfully = PlayMontage(HitMontage, "EndDamage");
+	const bool bPlayedSuccessfully = PlayMontage(HitMontage, this, "EndDamage");
 
 	HealthWidgetComponent->SetVisibility(true);
 
@@ -263,7 +261,7 @@ bool AUnrealSoulsCharacter::CanTakeDamage_Implementation()
 void AUnrealSoulsCharacter::EndAttack(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsAttacking = false;
-	CombatComponent->AttackEnd();
+	CombatComponent->OnAttackEnd();
 }
 
 void AUnrealSoulsCharacter::OnDeathStart()
@@ -277,7 +275,7 @@ void AUnrealSoulsCharacter::OnDeathStart()
 	HealthWidgetComponent->SetVisibility(false);
 
 	CombatComponent->bCanTakeDamage = false;
-	const bool bPlayedSuccessfully = PlayMontage(DeathMontage, "OnDeathEnd");
+	const bool bPlayedSuccessfully = PlayMontage(DeathMontage, this, "OnDeathEnd");
 }
 
 void AUnrealSoulsCharacter::OnDeathEnd(UAnimMontage* Montage, bool bInterrupted)

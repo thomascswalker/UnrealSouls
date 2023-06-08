@@ -238,9 +238,11 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 
 void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& ActionValue)
 {
-	if (!PlayerCharacter->bIsAttacking)
+	if (!PlayerCharacter->CombatComponent->bIsAttacking)
 	{
-		PlayerCharacter->LightAttack();
+		// PlayerCharacter->LightAttack();
+		PlayerCharacter->CombatComponent->Attack(EAttackType::Light);
+
 	}
 }
 
