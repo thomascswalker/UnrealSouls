@@ -29,7 +29,7 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
 		if (TargetActor)
 		{
 			// If we're blocking, rotate towards the target
-			if (PlayerCharacter->CombatComponent->bIsBlocking)
+			if (PlayerCharacter->CombatComponent->IsBlocking())
 			{
 				// Get the LookAt rotation from the player to the target
 				// Rotate the controller
@@ -137,7 +137,7 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 void AUnrealSoulsPlayerController::OnLookTriggered(const FInputActionValue& ActionValue)
 {
 	// If we're currently targeting something AND blocking, don't allow looking around
-	if (CurrentTarget.GetObject() != nullptr && PlayerCharacter->CombatComponent->bIsBlocking)
+	if (CurrentTarget.GetObject() != nullptr && PlayerCharacter->CombatComponent->IsBlocking())
 	{
 		return;
 	}
@@ -247,12 +247,12 @@ void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& Ac
 
 void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& ActionValue)
 {
-	PlayerCharacter->CombatComponent->bIsBlocking = true;
+	PlayerCharacter->CombatComponent->SetBlocking(true);
 }
 
 void AUnrealSoulsPlayerController::OnBlockCompleted(const FInputActionValue& ActionValue)
 {
-	PlayerCharacter->CombatComponent->bIsBlocking = false;
+	PlayerCharacter->CombatComponent->SetBlocking(false);
 }
 
 void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}

@@ -19,7 +19,6 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 {
 	// Actor components
 	HealthComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("HealthComponent"));
-	HealthComponent->Depleted.AddUniqueDynamic(this, &AUnrealSoulsCharacter::OnDeathStart);
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 
 	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass = TSoftClassPtr<UClimbingComponent>(
@@ -74,8 +73,12 @@ void AUnrealSoulsCharacter::BeginPlay()
 		ActionTimeline->RegisterComponent();
 	}
 
+	// Bind the health component of this actor to the health widget
 	UStatusWidget* HealthWidget = Cast<UStatusWidget>(HealthWidgetComponent->GetWidget());
 	HealthWidget->HealthComponent = HealthComponent;
+
+	// Bind the health component's depleted event to the combat component's death start
+	HealthComponent->Depleted.AddUniqueDynamic(CombatComponent, &UCombatComponent::OnDeathStart);
 }
 
 void AUnrealSoulsCharacter::Tick(float DeltaTime)
@@ -150,7 +153,7 @@ void AUnrealSoulsCharacter::StartRoll()
 		RollMontage = RollBackwardMontage;
 	}
 	// If we're blocking, allow rolling in any direction
-	else if (CombatComponent->bIsBlocking)
+	else if (CombatComponent->IsBlocking())
 	{
 		float ForwardDot = GetActorForwardVector().Dot(GetCharacterMovement()->Velocity);
 		float RightDot = GetActorRightVector().Dot(GetCharacterMovement()->Velocity);
@@ -235,23 +238,4 @@ void AUnrealSoulsCharacter::EndRoll()
 	{
 		GetCharacterMovement()->StopMovementImmediately();
 	}
-}
-
-void AUnrealSoulsCharacter::OnDeathStart()
-{
-	UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
-	if (AnimInstance)
-	{
-		AnimInstance->StopAllMontages(0.0f);
-	}
-
-	HealthWidgetComponent->SetVisibility(false);
-
-	CombatComponent->bCanTakeDamage = false;
-	const bool bPlayedSuccessfully = PlayMontage(DeathMontage, this, "OnDeathEnd");
-}
-
-void AUnrealSoulsCharacter::OnDeathEnd(UAnimMontage* Montage, bool bInterrupted)
-{
-	Destroy();
 }

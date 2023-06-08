@@ -151,16 +151,4 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
-
-	// Blocking
-
-	UFUNCTION(BlueprintCallable)
-	virtual bool Block() { return false; }
-
-	// Death
-	UFUNCTION()
-	void OnDeathStart();
-
-	UFUNCTION()
-	void OnDeathEnd(UAnimMontage* Montage, bool bInterrupted);
 };

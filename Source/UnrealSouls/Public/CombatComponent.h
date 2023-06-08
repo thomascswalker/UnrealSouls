@@ -33,12 +33,12 @@ class UNREALSOULS_API UCombatComponent : public UActorComponent
 	FTimerHandle AttackTimerHandle;
 	float AttackTraceRate = 0.05f;
 
+	UPROPERTY()
+	bool bIsBlocking = false;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bIsAttacking = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-	bool bIsBlocking = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bCanTakeDamage = true;
@@ -104,4 +104,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void OnAttackEnd();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnDeathStart();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnDeathEnd(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION(BlueprintCallable)
+	void SetBlocking(bool bInBlocking) { bIsBlocking = bInBlocking; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsBlocking() { return bIsBlocking; }
 };

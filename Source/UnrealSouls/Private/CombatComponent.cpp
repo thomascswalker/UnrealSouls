@@ -156,3 +156,23 @@ void UCombatComponent::OnAttackEnd_Implementation()
 	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
 	AttackEnded.Broadcast();
 }
+
+void UCombatComponent::OnDeathStart_Implementation()
+{
+	AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(GetOwner());
+	UAnimInstance* AnimInstance = (Character->GetMesh()) ? Character->GetMesh()->GetAnimInstance() : nullptr;
+	if (AnimInstance)
+	{
+		AnimInstance->StopAllMontages(0.0f);
+	}
+
+	Character->HealthWidgetComponent->SetVisibility(false);
+
+	bCanTakeDamage = false;
+	const bool bPlayedSuccessfully = Character->PlayMontage(Character->DeathMontage, this, "OnDeathEnd");
+}
+
+void UCombatComponent::OnDeathEnd_Implementation(UAnimMontage* Montage, bool bInterrupted)
+{
+	GetOwner()->Destroy();
+}
