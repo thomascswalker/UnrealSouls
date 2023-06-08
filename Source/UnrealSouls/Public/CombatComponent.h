@@ -6,16 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
-UENUM(BlueprintType)
-enum class EAttackType : uint8
-{
-	Light,
-	Heavy,
-	Parry,
-	Ranged,
-	Spell
-};
-
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class UNREALSOULS_API UCombatComponent : public UActorComponent
 {
@@ -23,20 +13,14 @@ class UNREALSOULS_API UCombatComponent : public UActorComponent
 
 	FTimerHandle AttackTimerHandle;
 	float AttackTraceRate = 0.05f;
-	
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsAttacking = false;
 
+
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanTakeDamage = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanDealDamage = false;
-
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAttackStarted);
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
-	FAttackStarted AttackStarted;
 
 public:
 	// Sets default values for this component's properties
@@ -57,9 +41,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetBaseDamage();
 
-	UFUNCTION(BlueprintCallable)
-	void Attack(EAttackType AttackType);
-
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void OnAttackStart();
 
@@ -70,5 +51,5 @@ public:
 	void OnAttackHit(AActor* HitActor);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void OnAttackEnd();
+	void AttackEnd();
 };

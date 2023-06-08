@@ -122,7 +122,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	bool PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName, float PlayRate = 1.0f);
+	bool PlayMontage(UAnimMontage* Montage, const FName InFunctionName, float PlayRate = 1.0f);
 
 	UFUNCTION(BlueprintCallable)
 	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }

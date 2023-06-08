@@ -2,8 +2,6 @@
 
 #include "CombatComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "UnrealSoulsCharacter.h"
-
 #include "Attackable.h"
 
 // Sets default values for this component's properties
@@ -12,18 +10,24 @@ UCombatComponent::UCombatComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+
+	// ...
 }
 
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// ...
 }
 
 // Called every frame
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	// ...
 }
 
 TOptional<FVector> UCombatComponent::GetSocketLocation(FName SocketName)
@@ -55,16 +59,6 @@ TOptional<FVector> UCombatComponent::GetAttackTraceEnd()
 float UCombatComponent::GetBaseDamage()
 {
 	return 20.0f;
-}
-
-void UCombatComponent::Attack(EAttackType AttackType)
-{
-	bIsAttacking = true;
-	AttackStarted.Broadcast();
-
-	AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(GetOwner());
-	Character->PlayMontage(Character->AttackMontage, this, "OnAttackEnd");
-	OnAttackStart();
 }
 
 void UCombatComponent::OnAttackStart_Implementation()
@@ -110,7 +104,7 @@ void UCombatComponent::OnAttackHit_Implementation(AActor* HitActor)
 	IAttackable::Execute_StartDamage(HitActor, GetBaseDamage(), GetOwner());
 }
 
-void UCombatComponent::OnAttackEnd_Implementation()
+void UCombatComponent::AttackEnd_Implementation()
 {
 	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
 }
