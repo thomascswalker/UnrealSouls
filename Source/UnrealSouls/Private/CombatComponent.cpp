@@ -132,6 +132,11 @@ void UCombatComponent::OnAttackTrace_Implementation()
 
 	if (bHitSuccessful)
 	{
+		if (!OutHit.GetActor()->GetClass()->ImplementsInterface(UAttackable::StaticClass()))
+		{
+			return;
+		}
+
 		UCombatComponent* OtherComp = IAttackable::Execute_GetCombatComponent(OutHit.GetActor());
 		if (OtherComp && OtherComp->CanTakeDamage())
 		{
