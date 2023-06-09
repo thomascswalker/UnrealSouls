@@ -239,3 +239,8 @@ void AUnrealSoulsCharacter::EndRoll()
 		GetCharacterMovement()->StopMovementImmediately();
 	}
 }
+
+bool AUnrealSoulsCharacter::IsTargetable_Implementation()
+{
+	return HealthComponent->Value > 0.0f;
+}

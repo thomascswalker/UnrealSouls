@@ -151,4 +151,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool IsTargetable();
 };
