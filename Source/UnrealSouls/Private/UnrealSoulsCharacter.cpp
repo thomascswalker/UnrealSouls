@@ -257,19 +257,19 @@ void AUnrealSoulsCharacter::OnRest(bool bInResting)
 {
 	if (bInResting)
 	{
+		bIsResting = true;
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-		PlayMontage(RestTransitionMontage, this, "OnRestEnd", 1.0f);
+		PlayMontage(RestTransitionDownMontage, this, "OnRestEnd", 1.0f);
 	}
 	else
 	{
 		Resting.Broadcast(false);
-		PlayMontage(RestTransitionMontage, this, "OnUnrestEnd", -1.0f);
+		PlayMontage(RestTransitionUpMontage, this, "OnUnrestEnd", 1.0f);
 	}
 }
 
 void AUnrealSoulsCharacter::OnRestEnd(UAnimMontage* Montage, bool bInterrupted)
 {
-	bIsResting = true;
 	Resting.Broadcast(true);
 }
 

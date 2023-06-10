@@ -106,7 +106,10 @@ public:
 	UAnimMontage* DeathMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RestTransitionMontage;
+	UAnimMontage* RestTransitionDownMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RestTransitionUpMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	EFaction Faction;
