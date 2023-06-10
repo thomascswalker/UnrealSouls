@@ -99,6 +99,12 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 
 void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& ActionValue)
 {
+	// If we're resting, allow moving to exit the resting state
+	if (PlayerCharacter->bIsResting)
+	{
+		PlayerCharacter->OnRest(false);
+	}
+
 	// Disable input when we can't move
 	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(PlayerCharacter->GetMovementComponent());
 	if (Movement->MovementMode == EMovementMode::MOVE_None)

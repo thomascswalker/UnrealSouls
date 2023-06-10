@@ -114,15 +114,23 @@ bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, UObject* InObject
 			return false;
 		}
 
-		FOnMontageEnded OnMontageEndedDelegate;
-		OnMontageEndedDelegate.BindUFunction(InObject, InFunctionName);
-		AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, Montage);
+		if (InObject != nullptr && InFunctionName != "")
+		{
+			FOnMontageEnded OnMontageEndedDelegate;
+			OnMontageEndedDelegate.BindUFunction(InObject, InFunctionName);
+			AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, Montage);
+		}
 		return true;
 	}
 	else
 	{
 		return false;
 	}
+}
+
+bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, float PlayRate)
+{
+	return PlayMontage(Montage, nullptr, "", PlayRate);
 }
 
 void AUnrealSoulsCharacter::StartSprint()
@@ -243,4 +251,30 @@ void AUnrealSoulsCharacter::EndRoll()
 bool AUnrealSoulsCharacter::IsTargetable_Implementation()
 {
 	return HealthComponent->Value > 0.0f;
+}
+
+void AUnrealSoulsCharacter::OnRest(bool bInResting)
+{
+	if (bInResting)
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		PlayMontage(RestTransitionMontage, this, "OnRestEnd", 1.0f);
+	}
+	else
+	{
+		Resting.Broadcast(false);
+		PlayMontage(RestTransitionMontage, this, "OnUnrestEnd", -1.0f);
+	}
+}
+
+void AUnrealSoulsCharacter::OnRestEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsResting = true;
+	Resting.Broadcast(true);
+}
+
+void AUnrealSoulsCharacter::OnUnrestEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsResting = false;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }

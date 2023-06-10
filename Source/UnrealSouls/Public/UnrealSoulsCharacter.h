@@ -69,6 +69,8 @@ public:
 	bool bCanEverClimb = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsClimbing = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bIsResting = false;
 
 	float BaseSpeed = 400.0f;
 	float BaseAcceleration = 1500.0f;
@@ -103,11 +105,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
 	UAnimMontage* DeathMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* RestTransitionMontage;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	EFaction Faction;
 
 	UPROPERTY()
 	UCurveFloat* DefaultRollCurve;
+
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FResting, bool, bIsResting);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FResting Resting;
 
 public:
 	AUnrealSoulsCharacter();
@@ -119,7 +128,8 @@ public:
 	UCombatComponent* GetCombatComponent();
 
 	UFUNCTION(BlueprintCallable)
-	bool PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName, float PlayRate = 1.0f);
+	bool PlayMontage(UAnimMontage* Montage, UObject* InObject = nullptr, const FName InFunctionName = "", float PlayRate = 1.0f);
+	bool PlayMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
 
 	UFUNCTION(BlueprintCallable)
 	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
@@ -152,6 +162,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void EndRoll();
 
+	// Targeting
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool IsTargetable();
+
+	// Resting
+
+	UFUNCTION(BlueprintCallable)
+	void OnRest(bool bInResting);
+
+	UFUNCTION(BlueprintCallable)
+	void OnRestEnd(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION(BlueprintCallable)
+	void OnUnrestEnd(UAnimMontage* Montage, bool bInterrupted);
 };
