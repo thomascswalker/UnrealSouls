@@ -58,6 +58,10 @@ public:
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
 	FAttackHit AttackHit;
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDeath);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FDeath Death;
+
 public:
 	// Sets default values for this component's properties
 	UCombatComponent();

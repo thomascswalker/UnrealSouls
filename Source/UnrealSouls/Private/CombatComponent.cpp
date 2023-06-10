@@ -179,5 +179,6 @@ void UCombatComponent::OnDeathStart_Implementation()
 
 void UCombatComponent::OnDeathEnd_Implementation(UAnimMontage* Montage, bool bInterrupted)
 {
+	Death.Broadcast();
 	GetOwner()->Destroy();
 }

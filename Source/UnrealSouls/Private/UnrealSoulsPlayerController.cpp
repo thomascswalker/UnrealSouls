@@ -25,9 +25,15 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
 {
 	if (CurrentTarget.GetObject() != nullptr)
 	{
-		AActor* TargetActor = Cast<AActor>(CurrentTarget.GetObject());
+		AUnrealSoulsCharacter* TargetActor = Cast<AUnrealSoulsCharacter>(CurrentTarget.GetObject());
 		if (TargetActor)
 		{
+			if (!TargetActor->IsTargetable())
+			{
+				Untarget();
+				return;
+			}
+
 			// If we're blocking, rotate towards the target
 			if (PlayerCharacter->CombatComponent->IsBlocking())
 			{
@@ -93,6 +99,12 @@ void AUnrealSoulsPlayerController::SetupInputComponent()
 
 void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& ActionValue)
 {
+	// If we're resting, allow moving to exit the resting state
+	if (PlayerCharacter->bIsResting)
+	{
+		PlayerCharacter->OnRest(false);
+	}
+
 	// Disable input when we can't move
 	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(PlayerCharacter->GetMovementComponent());
 	if (Movement->MovementMode == EMovementMode::MOVE_None)
@@ -187,8 +199,7 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 {
 	if (CurrentTarget.GetObject() != nullptr)
 	{
-		CurrentTarget.SetObject(nullptr);
-		TargetVisibilityChanged.Broadcast(false);
+		Untarget();
 		return;
 	}
 
@@ -235,6 +246,12 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 		TargetVisibilityChanged.Broadcast(true);
 		return;
 	}
+}
+
+void AUnrealSoulsPlayerController::Untarget()
+{
+	CurrentTarget.SetObject(nullptr);
+	TargetVisibilityChanged.Broadcast(false);
 }
 
 void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& ActionValue)

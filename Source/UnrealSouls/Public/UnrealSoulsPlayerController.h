@@ -96,6 +96,7 @@ public:
 	void OnJumpTriggered(const FInputActionValue& ActionValue);
 	void OnInteractTriggered(const FInputActionValue& ActionValue);
 	void OnTargetTriggered(const FInputActionValue& ActionValue);
+	void Untarget();
 
 	void OnAttackTriggered(const FInputActionValue& ActionValue);
 
