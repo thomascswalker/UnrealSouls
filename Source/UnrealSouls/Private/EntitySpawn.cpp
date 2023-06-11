@@ -33,6 +33,7 @@ void AEntitySpawn::Spawn()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
 	Entity = GetWorld()->SpawnActor<AUnrealSoulsCharacter>(CharacterClass, GetActorTransform(), SpawnParams);
 	Entity->CombatComponent->Death.AddUniqueDynamic(this, &AEntitySpawn::OnEntityDeath);
 }
