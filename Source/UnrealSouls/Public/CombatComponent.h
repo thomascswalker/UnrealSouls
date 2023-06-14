@@ -7,6 +7,17 @@
 
 #include "CombatComponent.generated.h"
 
+const TArray<FString> ANIMATION_OPTIONS = { "Attack", "Hit", "Death" };
+
+UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+	Light,
+	Heavy,
+	Ranged,
+	Spell
+};
+
 USTRUCT(BlueprintType)
 struct FCombatData
 {
@@ -30,21 +41,28 @@ class UNREALSOULS_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	FTimerHandle AttackTimerHandle;
-	float AttackTraceRate = 0.05f;
-
-	UPROPERTY()
-	bool bIsBlocking = false;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations", meta = (GetOptions = "GetAnimationOptions"))
+	TMap<FString, UAnimMontage*> Animations;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bIsAttacking = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	bool bIsBlocking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bCanTakeDamage = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bCanDealDamage = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	FTimerHandle AttackTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float AttackTraceRate = 0.05f;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAttackStarted);
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
@@ -80,6 +98,9 @@ public:
 	TOptional<FVector> GetAttackTraceStart();
 	TOptional<FVector> GetAttackTraceEnd();
 
+	UFUNCTION()
+	TArray<FString> GetAnimationOptions() const { return ANIMATION_OPTIONS; }
+
 	// Functions
 
 	UFUNCTION(BlueprintCallable)
@@ -98,7 +119,7 @@ public:
 	void OnTakeDamageEnd(UAnimMontage* Montage, bool bInterrupted);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void OnAttackStart();
+	void OnAttackStart(EAttackType AttackType);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void OnAttackTrace();

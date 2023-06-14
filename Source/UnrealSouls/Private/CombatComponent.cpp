@@ -12,6 +12,11 @@ UCombatComponent::UCombatComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+	for (const FString Key : ANIMATION_OPTIONS)
+	{
+		Animations.Add(Key, nullptr);
+	}
+
 	// ...
 }
 
@@ -95,7 +100,7 @@ void UCombatComponent::OnTakeDamageEnd_Implementation(UAnimMontage* Montage, boo
 	bCanTakeDamage = true;
 }
 
-void UCombatComponent::OnAttackStart_Implementation()
+void UCombatComponent::OnAttackStart_Implementation(EAttackType AttackType)
 {
 	// Start attacking
 	bIsAttacking = true;

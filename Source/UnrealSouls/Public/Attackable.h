@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "StatusComponent.h"
 #include "CombatComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #include "Attackable.generated.h"
 
@@ -32,5 +33,8 @@ public:
 	bool CanTakeDamage();
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	UCombatComponent* GetCombatComponent();
+	UCombatComponent* GetCombatComponent() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	USkeletalMeshComponent* GetMeshComponent() const;
 };

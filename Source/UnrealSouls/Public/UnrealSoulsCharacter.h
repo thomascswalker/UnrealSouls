@@ -2,18 +2,23 @@
 
 #pragma once
 
+#include "Abilities/CharacterAbilitySystemComponent.h"
+#include "Abilities/CharacterAttributeSet.h"
+#include "Abilities/CharacterGameplayAbility.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "Attackable.h"
+#include "ClimbingComponent.h"
+#include "CombatComponent.h"
+#include "Components/BoxComponent.h"
+#include "Components/TimelineComponent.h"
+#include "Components/WidgetComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
-#include "Components/BoxComponent.h"
-#include "Components/TimelineComponent.h"
-#include "ClimbingComponent.h"
-#include "Targetable.h"
 #include "StatusComponent.h"
-#include "CombatComponent.h"
-#include "Attackable.h"
-#include "Components/WidgetComponent.h"
+#include "Targetable.h"
 
 #include "UnrealSoulsCharacter.generated.h"
 
@@ -35,7 +40,7 @@ enum class ERollOrientation : uint8
 };
 
 UCLASS(config = Game)
-class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAttackable
+class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAttackable, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -50,7 +55,11 @@ public:
 	TObjectPtr<UCombatComponent> CombatComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UWidgetComponent> HealthWidgetComponent; 
+	TObjectPtr<UWidgetComponent> HealthWidgetComponent;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UCharacterAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UCharacterAttributeSet> AttributeSet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UTimelineComponent> ActionTimeline;
@@ -117,30 +126,69 @@ public:
 	UPROPERTY()
 	UCurveFloat* DefaultRollCurve;
 
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FResting, bool, bIsResting);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDied, AUnrealSoulsCharacter*, Character);
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
+	FCharacterDied CharacterDied;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FResting, bool, bIsResting);
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
 	FResting Resting;
 
 public:
-	AUnrealSoulsCharacter();
+	AUnrealSoulsCharacter(){};
+	AUnrealSoulsCharacter(const class FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void PossessedBy(AController* NewController) override;
 
 public:
+
+	// Attributes
+
+	//UPROPERTY(BlueprintCallable)
+	bool IsAlive() const;
+
+	void Die();
+
+	void DieEnd();
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetStamina() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxStamina() const;
+
+
+	// Components
+
+	UFUNCTION()
+	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	UCombatComponent* GetCombatComponent();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	USkeletalMeshComponent* GetMeshComponent();
+
+	// Montage
 
 	UFUNCTION(BlueprintCallable)
 	bool PlayMontage(UAnimMontage* Montage, UObject* InObject = nullptr, const FName InFunctionName = "", float PlayRate = 1.0f);
 	bool PlayMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
+
+	// Movement
 
 	UFUNCTION(BlueprintCallable)
 	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetMovementSpeed(float NewSpeed) { GetCharacterMovement()->MaxWalkSpeed = NewSpeed; }
-
-	// Sprinting
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool CanSprint() { return false; }
@@ -150,8 +198,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void EndSprint();
-
-	// Rolling
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool CanRoll() { return false; }
@@ -180,4 +226,29 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnUnrestEnd(UAnimMontage* Montage, bool bInterrupted);
+
+	// Attacking
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnAttack();
+
+protected:
+	FGameplayTag DeadTag;
+	FGameplayTag EffectRemoveOnDeathTag;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	TArray<TSubclassOf<class UCharacterGameplayAbility>> CharacterAbilities;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	TSubclassOf<class UGameplayEffect> DefaultAttributes;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	TSubclassOf<class UGameplayEffect> StartupEffect;
+
+	virtual void AddCharacterAbilities();
+	virtual void RemoveCharacterAbilities();
+	virtual void InitializeAttributes();
+	virtual void AddStartupEffect();
+
+	virtual void SetHealth(float NewHealth);
+	virtual void SetStamina(float NewStamina);
 };

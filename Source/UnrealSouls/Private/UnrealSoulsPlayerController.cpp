@@ -256,10 +256,11 @@ void AUnrealSoulsPlayerController::Untarget()
 
 void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& ActionValue)
 {
-	if (!PlayerCharacter->CombatComponent->bIsAttacking)
-	{
-		PlayerCharacter->CombatComponent->OnAttackStart();
-	}
+	PlayerCharacter->OnAttack();
+	//if (!PlayerCharacter->CombatComponent->bIsAttacking)
+	//{
+	//	PlayerCharacter->CombatComponent->OnAttackStart(EAttackType::Light);
+	//}
 }
 
 void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& ActionValue)

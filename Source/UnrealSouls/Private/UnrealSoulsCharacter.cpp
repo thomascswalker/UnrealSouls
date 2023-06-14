@@ -15,11 +15,14 @@
 #include "Math/UnrealMathUtility.h"
 #include "StatusWidget.h"
 
-AUnrealSoulsCharacter::AUnrealSoulsCharacter()
+AUnrealSoulsCharacter::AUnrealSoulsCharacter(const class FObjectInitializer& ObjectInitializer)
 {
+	bAlwaysRelevant = true;
+
 	// Actor components
 	HealthComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("HealthComponent"));
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
 	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass = TSoftClassPtr<UClimbingComponent>(
 		FSoftObjectPath(TEXT("Blueprint'/Game/Blueprints/Components/BP_ClimbingComponent.BP_ClimbingComponent_C'")));
@@ -46,6 +49,10 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 		HealthWidgetComponent->SetDrawAtDesiredSize(true);
 		HealthWidgetComponent->SetRelativeLocation(FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 2.0f));
 	}
+
+	// Create tags
+	 DeadTag = FGameplayTag::RequestGameplayTag(FName("Character.State.Dead"));
+	 EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Character.State.EffectRemoveOnDeath"));
 }
 
 void AUnrealSoulsCharacter::BeginPlay()
@@ -73,12 +80,12 @@ void AUnrealSoulsCharacter::BeginPlay()
 		ActionTimeline->RegisterComponent();
 	}
 
-	// Bind the health component of this actor to the health widget
-	UStatusWidget* HealthWidget = Cast<UStatusWidget>(HealthWidgetComponent->GetWidget());
-	HealthWidget->HealthComponent = HealthComponent;
+	//// Bind the health component of this actor to the health widget
+	//UStatusWidget* HealthWidget = Cast<UStatusWidget>(HealthWidgetComponent->GetWidget());
+	//HealthWidget->HealthComponent = HealthComponent;
 
-	// Bind the health component's depleted event to the combat component's death start
-	HealthComponent->Depleted.AddUniqueDynamic(CombatComponent, &UCombatComponent::OnDeathStart);
+	//// Bind the health component's depleted event to the combat component's death start
+	//HealthComponent->Depleted.AddUniqueDynamic(CombatComponent, &UCombatComponent::OnDeathStart);
 }
 
 void AUnrealSoulsCharacter::Tick(float DeltaTime)
@@ -97,9 +104,106 @@ void AUnrealSoulsCharacter::Tick(float DeltaTime)
 	}
 }
 
+void AUnrealSoulsCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+
+	SetOwner(NewController);
+}
+
+bool AUnrealSoulsCharacter::IsAlive() const
+{
+	return GetHealth() > 0.0f;
+}
+
+void AUnrealSoulsCharacter::Die()
+{
+	RemoveCharacterAbilities();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	CharacterDied.Broadcast(this);
+
+	if (!AbilitySystemComponent.IsNull())
+	{
+		AbilitySystemComponent->CancelAbilities();
+
+		int32 EffectsRemovedCount = AbilitySystemComponent->RemoveActiveEffectsWithTags(FGameplayTagContainer{ EffectRemoveOnDeathTag });
+		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+	}
+
+	if (DeathMontage)
+	{
+		PlayMontage(DeathMontage, this, "DieEnd");
+	}
+	else
+	{
+		DieEnd();
+	}
+}
+
+void AUnrealSoulsCharacter::DieEnd()
+{
+	Destroy();
+}
+
+float AUnrealSoulsCharacter::GetHealth() const
+{
+	if (!AttributeSet.IsNull())
+	{
+		return AttributeSet->GetHealth();
+	}
+
+	return 0.0f;
+}
+
+float AUnrealSoulsCharacter::GetMaxHealth() const
+{
+	if (!AttributeSet.IsNull())
+	{
+		return AttributeSet->GetMaxHealth();
+	}
+
+	return 0.0f;
+}
+
+float AUnrealSoulsCharacter::GetStamina() const
+{
+	if (!AttributeSet.IsNull())
+	{
+		return AttributeSet->GetStamina();
+	}
+
+	return 0.0f;
+}
+
+float AUnrealSoulsCharacter::GetMaxStamina() const
+{
+	if (!AttributeSet.IsNull())
+	{
+		return AttributeSet->GetMaxStamina();
+	}
+
+	return 0.0f;
+}
+
+UAbilitySystemComponent* AUnrealSoulsCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
 UCombatComponent* AUnrealSoulsCharacter::GetCombatComponent_Implementation()
 {
 	return CombatComponent;
+}
+
+USkeletalMeshComponent* AUnrealSoulsCharacter::GetMeshComponent_Implementation()
+{
+	return GetMesh();
 }
 
 bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName, float PlayRate)
@@ -277,4 +381,104 @@ void AUnrealSoulsCharacter::OnUnrestEnd(UAnimMontage* Montage, bool bInterrupted
 {
 	bIsResting = false;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
+void AUnrealSoulsCharacter::OnAttack_Implementation() {}
+
+void AUnrealSoulsCharacter::AddCharacterAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || AbilitySystemComponent.IsNull() || !AbilitySystemComponent->bCharacterAbilitiesGiven)
+	{
+		return;
+	}
+
+	for (const TSubclassOf<UCharacterGameplayAbility>& StartupAbility : CharacterAbilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility));
+	}
+
+	AbilitySystemComponent->bCharacterAbilitiesGiven = true;
+}
+
+void AUnrealSoulsCharacter::RemoveCharacterAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || AbilitySystemComponent.IsNull() || !AbilitySystemComponent->bCharacterAbilitiesGiven)
+	{
+		return;
+	}
+
+	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if (Spec.SourceObject == this && CharacterAbilities.Contains(Spec.Ability->GetClass()))
+		{
+			AbilitiesToRemove.Add(Spec.Handle);
+		}
+	}
+
+	for (const FGameplayAbilitySpecHandle& Ability : AbilitiesToRemove)
+	{
+		AbilitySystemComponent->ClearAbility(Ability);
+	}
+
+	AbilitySystemComponent->bCharacterAbilitiesGiven = false;
+}
+
+void AUnrealSoulsCharacter::InitializeAttributes()
+{
+	if (AbilitySystemComponent.IsNull())
+	{
+		return;
+	}
+
+	if (!DefaultAttributes)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s() Missing DefaultAttributes for %s."), *FString(__FUNCTION__), *GetName());
+	}
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle EffectHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributes, 0, EffectContext);
+	if (EffectHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGameEffectHandle =
+			AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*EffectHandle.Data.Get(), AbilitySystemComponent.Get());
+	}
+}
+
+void AUnrealSoulsCharacter::AddStartupEffect()
+{
+	if (GetLocalRole() != ROLE_Authority || AbilitySystemComponent.IsNull() || !AbilitySystemComponent->bStartupEffectApplied)
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle EffectHandle = AbilitySystemComponent->MakeOutgoingSpec(StartupEffect, 0, EffectContext);
+	if (EffectHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGameEffectHandle =
+			AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*EffectHandle.Data.Get(), AbilitySystemComponent.Get());
+	}
+
+	AbilitySystemComponent->bStartupEffectApplied = true;
+}
+
+void AUnrealSoulsCharacter::SetHealth(float NewHealth)
+{
+	if (!AttributeSet.IsNull())
+	{
+		AttributeSet->SetHealth(NewHealth);
+	}
+}
+
+void AUnrealSoulsCharacter::SetStamina(float NewStamina)
+{
+	if (!AttributeSet.IsNull())
+	{
+		AttributeSet->SetStamina(NewStamina);
+	}
 }
