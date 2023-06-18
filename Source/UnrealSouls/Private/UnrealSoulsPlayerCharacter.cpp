@@ -42,16 +42,12 @@ AUnrealSoulsPlayerCharacter::AUnrealSoulsPlayerCharacter()
 	FollowCamera->bUsePawnControlRotation = false;								// Camera does not rotate relative to arm
 	FollowCamera->FieldOfView = 43.0f;
 
-	StaminaComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("StaminaComponent"));
-	if (StaminaComponent)
-	{
-		StaminaComponent->bAutoReplenish = true;
-		StaminaComponent->ReplenishRate = StaminaReplenishRate;
-		StaminaComponent->ReplenishDelay = StaminaReplenishDelay;
-
-		// Bind stamina depletion to cancelling any sprinting
-		StaminaComponent->Depleted.AddUniqueDynamic(this, &AUnrealSoulsPlayerCharacter::EndSprint);
-	}
+	// Initialize attributes
+	AttributeSet->InitHealth(100.0f);
+	AttributeSet->InitMaxHealth(100.0f);
+	AttributeSet->InitStamina(100.0f);
+	AttributeSet->InitMaxStamina(100.0f);
+	AttributeSet->InitAttackPower(25.0f);
 }
 
 // Called when the game starts or when spawned
@@ -67,13 +63,14 @@ void AUnrealSoulsPlayerCharacter::Tick(float DeltaTime)
 
 	if (bIsSprinting)
 	{
-		StaminaComponent->Deplete(SprintCost * DeltaTime);
+		//StaminaComponent->Deplete(SprintCost * DeltaTime);
 	}
 }
 
 bool AUnrealSoulsPlayerCharacter::CanSprint()
 {
-	return !bIsRolling && !GetCharacterMovement()->IsFalling() && StaminaComponent->Value > 0.0f;
+	return false;
+	//return !bIsRolling && !GetCharacterMovement()->IsFalling() && StaminaComponent->Value > 0.0f;
 }
 
 void AUnrealSoulsPlayerCharacter::StartSprint()
@@ -85,7 +82,7 @@ void AUnrealSoulsPlayerCharacter::StartSprint()
 	}
 
 	// When the sprint button is held down, always disallow stamina replenish
-	StaminaComponent->bAutoReplenish = false;
+	//StaminaComponent->bAutoReplenish = false;
 }
 
 void AUnrealSoulsPlayerCharacter::EndSprint()
@@ -93,13 +90,14 @@ void AUnrealSoulsPlayerCharacter::EndSprint()
 	if (!bIsRolling)
 	{
 		Super::EndSprint();
-		StaminaComponent->bAutoReplenish = true;
+		//StaminaComponent->bAutoReplenish = true;
 	}
 }
 
 bool AUnrealSoulsPlayerCharacter::CanRoll()
 {
-	return !bIsRolling && !GetCharacterMovement()->IsFalling() && StaminaComponent->Value > 0.0f;
+	return false;
+	//return !bIsRolling && !GetCharacterMovement()->IsFalling() && StaminaComponent->Value > 0.0f;
 }
 
 void AUnrealSoulsPlayerCharacter::StartRoll()
@@ -107,13 +105,13 @@ void AUnrealSoulsPlayerCharacter::StartRoll()
 	if (CanRoll())
 	{
 		Super::StartRoll();
-		StaminaComponent->Deplete(RollCost);
-		StaminaComponent->bAutoReplenish = false;
+		//StaminaComponent->Deplete(RollCost);
+		//StaminaComponent->bAutoReplenish = false;
 	}
 }
 
 void AUnrealSoulsPlayerCharacter::EndRoll()
 {
 	Super::EndRoll();
-	StaminaComponent->bAutoReplenish = true;
+	//StaminaComponent->bAutoReplenish = true;
 }

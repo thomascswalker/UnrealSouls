@@ -15,14 +15,13 @@
 #include "Math/UnrealMathUtility.h"
 #include "StatusWidget.h"
 
-AUnrealSoulsCharacter::AUnrealSoulsCharacter(const class FObjectInitializer& ObjectInitializer)
+AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 {
 	bAlwaysRelevant = true;
 
 	// Actor components
-	HealthComponent = CreateDefaultSubobject<UStatusComponent>(TEXT("HealthComponent"));
-	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("AttributeSet"));
 
 	TSoftClassPtr<UClimbingComponent> ClimbingComponentBPClass = TSoftClassPtr<UClimbingComponent>(
 		FSoftObjectPath(TEXT("Blueprint'/Game/Blueprints/Components/BP_ClimbingComponent.BP_ClimbingComponent_C'")));
@@ -51,8 +50,8 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter(const class FObjectInitializer& Obj
 	}
 
 	// Create tags
-	 DeadTag = FGameplayTag::RequestGameplayTag(FName("Character.State.Dead"));
-	 EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Character.State.EffectRemoveOnDeath"));
+	DeadTag = FGameplayTag::RequestGameplayTag(FName("Character.State.Dead"));
+	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Character.State.EffectRemoveOnDeath"));
 }
 
 void AUnrealSoulsCharacter::BeginPlay()
@@ -80,28 +79,26 @@ void AUnrealSoulsCharacter::BeginPlay()
 		ActionTimeline->RegisterComponent();
 	}
 
-	//// Bind the health component of this actor to the health widget
-	//UStatusWidget* HealthWidget = Cast<UStatusWidget>(HealthWidgetComponent->GetWidget());
-	//HealthWidget->HealthComponent = HealthComponent;
+	if (HealthWidgetComponent)
+	{
+		UStatusWidget* HealthWidget = Cast<UStatusWidget>(HealthWidgetComponent->GetWidget());
+		HealthWidget->Attributes = AttributeSet;
+	}
 
-	//// Bind the health component's depleted event to the combat component's death start
-	//HealthComponent->Depleted.AddUniqueDynamic(CombatComponent, &UCombatComponent::OnDeathStart);
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->GetSet<UCharacterAttributeSet>();
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+		FOnGameplayAttributeValueChange HealthChangedDelegate =
+			AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute());
+		HealthChangedDelegate.AddUObject(this, &AUnrealSoulsCharacter::OnHealthChanged);
+	}
 }
 
 void AUnrealSoulsCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (HealthWidgetComponent->GetVisibleFlag())
-	{
-		float CurrentTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
-
-		// If it's been longer than 5 seconds since the last health depletion, hide the widget
-		if (CurrentTime - HealthComponent->LastDepletion > 5.0f)
-		{
-			HealthWidgetComponent->SetVisibility(false);
-		}
-	}
 }
 
 void AUnrealSoulsCharacter::PossessedBy(AController* NewController)
@@ -124,7 +121,21 @@ bool AUnrealSoulsCharacter::IsAlive() const
 void AUnrealSoulsCharacter::Die()
 {
 	RemoveCharacterAbilities();
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// disable collision on the collision capsule
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	}
+
+	// Disable character movement
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->SetComponentTickEnabled(false);
+	}
 
 	CharacterDied.Broadcast(this);
 
@@ -191,19 +202,17 @@ float AUnrealSoulsCharacter::GetMaxStamina() const
 	return 0.0f;
 }
 
+void AUnrealSoulsCharacter::OnHealthChanged(const FOnAttributeChangeData& Data)
+{
+	if (Data.NewValue <= 0.0f)
+	{
+		Die();
+	}
+}
+
 UAbilitySystemComponent* AUnrealSoulsCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
-}
-
-UCombatComponent* AUnrealSoulsCharacter::GetCombatComponent_Implementation()
-{
-	return CombatComponent;
-}
-
-USkeletalMeshComponent* AUnrealSoulsCharacter::GetMeshComponent_Implementation()
-{
-	return GetMesh();
 }
 
 bool AUnrealSoulsCharacter::PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName, float PlayRate)
@@ -265,7 +274,7 @@ void AUnrealSoulsCharacter::StartRoll()
 		RollMontage = RollBackwardMontage;
 	}
 	// If we're blocking, allow rolling in any direction
-	else if (CombatComponent->IsBlocking())
+	else if (false) // TODO: Replace this with Block ability
 	{
 		float ForwardDot = GetActorForwardVector().Dot(GetCharacterMovement()->Velocity);
 		float RightDot = GetActorRightVector().Dot(GetCharacterMovement()->Velocity);
@@ -354,7 +363,7 @@ void AUnrealSoulsCharacter::EndRoll()
 
 bool AUnrealSoulsCharacter::IsTargetable_Implementation()
 {
-	return HealthComponent->Value > 0.0f;
+	return IsAlive();
 }
 
 void AUnrealSoulsCharacter::OnRest(bool bInResting)

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "StatusComponent.h"
+#include "Abilities/CharacterAttributeSet.h"
 
 #include "StatusWidget.generated.h"
 
@@ -17,6 +17,6 @@ class UNREALSOULS_API UStatusWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UStatusComponent* HealthComponent;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	UCharacterAttributeSet* Attributes;
 };

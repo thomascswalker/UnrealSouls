@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "StatusComponent.h"
-#include "CombatComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Abilities/CharacterAbilitySystemComponent.h"
 
 #include "Attackable.generated.h"
 
@@ -17,24 +17,11 @@ class UAttackable : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class UNREALSOULS_API IAttackable
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void StartDamage(float DamageTaken, AActor* Attacker);
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool CanTakeDamage();
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	UCombatComponent* GetCombatComponent() const;
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	USkeletalMeshComponent* GetMeshComponent() const;
 };

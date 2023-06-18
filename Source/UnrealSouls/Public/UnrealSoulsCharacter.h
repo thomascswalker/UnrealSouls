@@ -9,13 +9,13 @@
 #include "AbilitySystemInterface.h"
 #include "Attackable.h"
 #include "ClimbingComponent.h"
-#include "CombatComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Components/WidgetComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameplayEffectTypes.h"
 #include "InputActionValue.h"
 #include "StatusComponent.h"
 #include "Targetable.h"
@@ -46,23 +46,17 @@ class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAtt
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStatusComponent> HealthComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UClimbingComponent> ClimbingComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UCombatComponent> CombatComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UWidgetComponent> HealthWidgetComponent;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UCharacterAbilitySystemComponent> AbilitySystemComponent;
-	TObjectPtr<UCharacterAttributeSet> AttributeSet;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UTimelineComponent> ActionTimeline;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	TObjectPtr<UCharacterAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UCharacterAttributeSet> AttributeSet;
 
 	FVector CacheDirection;
 
@@ -135,17 +129,15 @@ public:
 	FResting Resting;
 
 public:
-	AUnrealSoulsCharacter(){};
-	AUnrealSoulsCharacter(const class FObjectInitializer& ObjectInitializer);
+	AUnrealSoulsCharacter();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
 
 public:
-
 	// Attributes
 
-	//UPROPERTY(BlueprintCallable)
+	UFUNCTION(BlueprintCallable)
 	bool IsAlive() const;
 
 	void Die();
@@ -164,17 +156,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetMaxStamina() const;
 
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
 
 	// Components
 
 	UFUNCTION()
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	UCombatComponent* GetCombatComponent();
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	USkeletalMeshComponent* GetMeshComponent();
 
 	// Montage
 

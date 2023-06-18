@@ -24,38 +24,30 @@ class UNREALSOULS_API UCharacterAttributeSet : public UAttributeSet
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
+	UPROPERTY(BlueprintReadOnly, Category = "Health")
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Health)
 
-	UPROPERTY(BlueprintReadOnly, Category = "MaxHealth", ReplicatedUsing = OnRep_MaxHealth)
+	UPROPERTY(BlueprintReadOnly, Category = "Health")
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, MaxHealth)
 
-	UPROPERTY(BlueprintReadOnly, Category = "Stamina", ReplicatedUsing = OnRep_Stamina)
+	UPROPERTY(BlueprintReadOnly, Category = "Stamina")
 	FGameplayAttributeData Stamina;
 	ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Stamina)
 
-	UPROPERTY(BlueprintReadOnly, Category = "MaxStamina", ReplicatedUsing = OnRep_MaxStamina)
+	UPROPERTY(BlueprintReadOnly, Category = "Stamina")
 	FGameplayAttributeData MaxStamina;
 	ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, MaxStamina)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attack")
+	FGameplayAttributeData AttackPower;
+	ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, AttackPower)
 
 	// Temporary attribute, doesn't need to be replicated
 	UPROPERTY(BlueprintReadOnly, Category = "Damage")
 	FGameplayAttributeData Damage;
 	ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Damage)
 
-	UFUNCTION()
-	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
-
-	UFUNCTION()
-	virtual void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth);
-
-	UFUNCTION()
-	virtual void OnRep_Stamina(const FGameplayAttributeData& OldStamina);
-
-	UFUNCTION()
-	virtual void OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina);
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 };

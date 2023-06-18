@@ -12,14 +12,14 @@ class UNREALSOULS_API UCharacterAbilitySystemComponent : public UAbilitySystemCo
 {
 	GENERATED_BODY()
 
-public:
+public: 
 	bool bCharacterAbilitiesGiven = false;
 	bool bStartupEffectApplied = false;
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
-		FReceivedDamage, UCharacterAbilitySystemComponent*, OtherComp, float, UnmitigatedDamage, float, MitigatedDamage);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+		FReceivedDamage, UCharacterAbilitySystemComponent*, OtherComp, float, Damage);
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
 	FReceivedDamage ReceivedDamage;
 
-	virtual void ReceiveDamage(UCharacterAbilitySystemComponent* OtherComp, float UnmitigatedDamage, float MitigatedDamage);
+	virtual void ReceiveDamage(UCharacterAbilitySystemComponent* OtherComp, float Damage);
 };
