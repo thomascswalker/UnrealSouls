@@ -24,9 +24,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStatusComponent> StaminaComponent;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
 	float SprintCost = 20.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")

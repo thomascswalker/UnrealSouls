@@ -35,7 +35,7 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
 			}
 
 			// If we're blocking, rotate towards the target
-			if (PlayerCharacter->CombatComponent->IsBlocking())
+			if (false) // PlayerCharacter->CombatComponent->IsBlocking()
 			{
 				// Get the LookAt rotation from the player to the target
 				// Rotate the controller
@@ -113,7 +113,7 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 	}
 
 	// Disallow movement while attacking, rolling, or falling
-	if (Movement->IsFalling() || PlayerCharacter->CombatComponent->bIsAttacking || PlayerCharacter->bIsRolling)
+	if (Movement->IsFalling() || PlayerCharacter->bIsRolling) // || PlayerCharacter->CombatComponent->bIsAttacking
 	{
 		return;
 	}
@@ -149,10 +149,10 @@ void AUnrealSoulsPlayerController::OnMoveTriggered(const FInputActionValue& Acti
 void AUnrealSoulsPlayerController::OnLookTriggered(const FInputActionValue& ActionValue)
 {
 	// If we're currently targeting something AND blocking, don't allow looking around
-	if (CurrentTarget.GetObject() != nullptr && PlayerCharacter->CombatComponent->IsBlocking())
-	{
-		return;
-	}
+	//if (CurrentTarget.GetObject() != nullptr) // && PlayerCharacter->CombatComponent->IsBlocking())
+	//{
+	//	return;
+	//}
 	FVector2D LookVector = ActionValue.Get<FVector2D>();
 
 	// Multiply the look input vector by the look sensitivity
@@ -180,10 +180,10 @@ void AUnrealSoulsPlayerController::OnSprintCompleted(const FInputActionValue& Ac
 
 void AUnrealSoulsPlayerController::OnJumpTriggered(const FInputActionValue& ActionValue)
 {
-	if (PlayerCharacter->bIsSprinting && PlayerCharacter->StaminaComponent->Value > 0.0f)
+	if (PlayerCharacter->bIsSprinting) // && PlayerCharacter->StaminaComponent->Value > 0.0f)
 	{
 		PlayerCharacter->Jump();
-		PlayerCharacter->StaminaComponent->Deplete(PlayerCharacter->JumpCost);
+		//PlayerCharacter->StaminaComponent->Deplete(PlayerCharacter->JumpCost);
 	}
 }
 
@@ -256,20 +256,21 @@ void AUnrealSoulsPlayerController::Untarget()
 
 void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& ActionValue)
 {
-	if (!PlayerCharacter->CombatComponent->bIsAttacking)
-	{
-		PlayerCharacter->CombatComponent->OnAttackStart();
-	}
+	PlayerCharacter->OnAttack();
+	//if (!PlayerCharacter->CombatComponent->bIsAttacking)
+	//{
+	//	PlayerCharacter->CombatComponent->OnAttackStart(EAttackType::Light);
+	//}
 }
 
 void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& ActionValue)
 {
-	PlayerCharacter->CombatComponent->SetBlocking(true);
+	//PlayerCharacter->CombatComponent->SetBlocking(true);
 }
 
 void AUnrealSoulsPlayerController::OnBlockCompleted(const FInputActionValue& ActionValue)
 {
-	PlayerCharacter->CombatComponent->SetBlocking(false);
+	//PlayerCharacter->CombatComponent->SetBlocking(false);
 }
 
 void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}
