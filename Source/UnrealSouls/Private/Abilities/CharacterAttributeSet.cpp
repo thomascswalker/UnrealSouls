@@ -11,6 +11,6 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+        SetHealth(FMath::Clamp(GetHealth(), 0.0f, BaseHealth));
 	}
 }

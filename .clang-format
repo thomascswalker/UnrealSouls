@@ -8,7 +8,7 @@ AlignOperands: DontAlign
 AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: Empty
 AllowShortEnumsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Inline
+AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: All
 AlwaysBreakTemplateDeclarations: Yes
 BraceWrapping:
@@ -34,7 +34,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
 BreakStringLiterals: false
 ColumnLimit: 150
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
 Cpp11BracedListStyle: false
 EmptyLineBeforeAccessModifier: LogicalBlock
 IndentCaseBlocks: false
@@ -46,4 +46,4 @@ PointerAlignment: Left
 SortIncludes: true
 SpaceBeforeCaseColon: false
 TabWidth: 4
-UseTab: Always
+UseTab: Never

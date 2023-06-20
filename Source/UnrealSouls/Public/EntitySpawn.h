@@ -24,7 +24,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Character", GetOptions = "GetEntityNames"))
 	FName CharacterRow;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<AUnrealSoulsCharacter> BaseClass;
+
+	UPROPERTY(BlueprintReadOnly)
 	FCharacterInfo CharacterInfo;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
