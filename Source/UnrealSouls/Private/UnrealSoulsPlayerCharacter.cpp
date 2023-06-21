@@ -26,7 +26,7 @@ AUnrealSoulsPlayerCharacter::AUnrealSoulsPlayerCharacter()
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
-	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
@@ -41,13 +41,6 @@ AUnrealSoulsPlayerCharacter::AUnrealSoulsPlayerCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false;								// Camera does not rotate relative to arm
 	FollowCamera->FieldOfView = 43.0f;
-
-	// Initialize attributes
-	AttributeSet->InitHealth(100.0f);
-	AttributeSet->InitMaxHealth(100.0f);
-	AttributeSet->InitStamina(100.0f);
-	AttributeSet->InitMaxStamina(100.0f);
-	AttributeSet->InitAttackPower(25.0f);
 }
 
 // Called when the game starts or when spawned
@@ -60,58 +53,4 @@ void AUnrealSoulsPlayerCharacter::BeginPlay()
 void AUnrealSoulsPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (bIsSprinting)
-	{
-		//StaminaComponent->Deplete(SprintCost * DeltaTime);
-	}
-}
-
-bool AUnrealSoulsPlayerCharacter::CanSprint()
-{
-	return false;
-	//return !bIsRolling && !GetCharacterMovement()->IsFalling() && StaminaComponent->Value > 0.0f;
-}
-
-void AUnrealSoulsPlayerCharacter::StartSprint()
-{
-	// Only start sprinting if we have stamina to do so
-	if (CanSprint())
-	{
-		Super::StartSprint();
-	}
-
-	// When the sprint button is held down, always disallow stamina replenish
-	//StaminaComponent->bAutoReplenish = false;
-}
-
-void AUnrealSoulsPlayerCharacter::EndSprint()
-{
-	if (!bIsRolling)
-	{
-		Super::EndSprint();
-		//StaminaComponent->bAutoReplenish = true;
-	}
-}
-
-bool AUnrealSoulsPlayerCharacter::CanRoll()
-{
-	return false;
-	//return !bIsRolling && !GetCharacterMovement()->IsFalling() && StaminaComponent->Value > 0.0f;
-}
-
-void AUnrealSoulsPlayerCharacter::StartRoll()
-{
-	if (CanRoll())
-	{
-		Super::StartRoll();
-		//StaminaComponent->Deplete(RollCost);
-		//StaminaComponent->bAutoReplenish = false;
-	}
-}
-
-void AUnrealSoulsPlayerCharacter::EndRoll()
-{
-	Super::EndRoll();
-	//StaminaComponent->bAutoReplenish = true;
 }

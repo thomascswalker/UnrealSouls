@@ -18,7 +18,7 @@ void AEntitySpawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	CharacterTable = LoadObject<UDataTable>(this, TEXT("/Game/Characters/DT_Characters.DT_Characters"));
+	CharacterTable = LoadObject<UDataTable>(this, TEXT("/Game/Characters/DT_EntityTable.DT_EntityTable"));
 	if (CharacterTable)
 	{
 		FCharacterInfo* CharacterInfoPtr = CharacterTable->FindRow<FCharacterInfo>(CharacterRow, TEXT(""));
@@ -52,9 +52,9 @@ void AEntitySpawn::Spawn()
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-	Entity = GetWorld()->SpawnActor<AUnrealSoulsCharacter>(CharacterInfo.Class, GetActorTransform(), SpawnParams);
+	Entity = GetWorld()->SpawnActor<AUnrealSoulsCharacter>(BaseClass, GetActorTransform(), SpawnParams);
 	if (Entity == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Unable to spawn entity."));
@@ -63,11 +63,8 @@ void AEntitySpawn::Spawn()
 	else
 	{
 		UE_LOG(LogTemp, Display, TEXT("Spawned %s."), *CharacterInfo.Name.ToString());
-
-		// Set initial stats
-		Entity->AttributeSet->InitHealth(CharacterInfo.Health);
-		Entity->AttributeSet->InitMaxHealth(CharacterInfo.Health);
-		Entity->AttributeSet->InitDamage(CharacterInfo.Damage);
+        Entity->SetCharacterInfo(CharacterInfo);
+		Entity->Died.AddUniqueDynamic(this, &AEntitySpawn::OnEntityDeath);
 	}
 }
 

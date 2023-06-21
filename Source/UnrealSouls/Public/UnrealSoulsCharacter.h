@@ -8,6 +8,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Attackable.h"
+#include "Characters/CharacterInfo.h"
 #include "ClimbingComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/TimelineComponent.h"
@@ -19,223 +20,201 @@
 #include "InputActionValue.h"
 #include "StatusComponent.h"
 #include "Targetable.h"
+#include "UI/StatusBar.h"
 
 #include "UnrealSoulsCharacter.generated.h"
 
 UENUM(BlueprintType)
 enum class EFaction : uint8
 {
-	Passive,
-	Neutral,
-	Aggressive
+    Passive,
+    Neutral,
+    Aggressive
 };
 
 UENUM(BlueprintType)
 enum class ERollOrientation : uint8
 {
-	Forward,
-	Backward,
-	Left,
-	Right
+    Forward,
+    Backward,
+    Left,
+    Right
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDamaged, float, Damage, float, NewHealth, float, OldHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDied);
 
 UCLASS(config = Game)
 class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAttackable, public IAbilitySystemInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UClimbingComponent> ClimbingComponent;
+    UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<UCharacterAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UWidgetComponent> HealthWidgetComponent;
+    UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+    TObjectPtr<UCharacterAttributeSet> Attributes;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UTimelineComponent> ActionTimeline;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
-	TObjectPtr<UCharacterAbilitySystemComponent> AbilitySystemComponent;
-	TObjectPtr<UCharacterAttributeSet> AttributeSet;
-
-	FVector CacheDirection;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bCanMove = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bIsJumping = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bIsRolling = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bIsSprinting = false;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
-	bool bCanEverClimb = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bIsClimbing = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	bool bIsResting = false;
-
-	float BaseSpeed = 400.0f;
-	float BaseAcceleration = 1500.0f;
-
-	float RollSpeed = 1000.0f;
-	FVector RollDirection;
-
-	float SprintSpeed = 600.0f;
-	float SprintAcceleration = 2500.0f;
-
-	float WalkSpeed = 150.0f;
-	float WalkAcceleration = 500.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RollForwardMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RollBackwardMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RollRightMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RollLeftMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* AttackMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* HitMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* DeathMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RestTransitionDownMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
-	UAnimMontage* RestTransitionUpMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-	EFaction Faction;
-
-	UPROPERTY()
-	UCurveFloat* DefaultRollCurve;
-
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDied, AUnrealSoulsCharacter*, Character);
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
-	FCharacterDied CharacterDied;
-
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FResting, bool, bIsResting);
-	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")
-	FResting Resting;
+    UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UWidgetComponent> HealthBarComponent;
 
 public:
-	AUnrealSoulsCharacter();
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-	virtual void PossessedBy(AController* NewController) override;
+    AUnrealSoulsCharacter();
+    virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
+
+    virtual void PossessedBy(AController* NewController) override;
 
 public:
-	// Attributes
+    UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	UFUNCTION(BlueprintCallable)
-	bool IsAlive() const;
+    virtual void InitializeAttributes();
+    virtual void InitializeAbilities();
 
-	void Die();
+    UFUNCTION(BlueprintCallable)
+    FCharacterInfo GetCharacterInfo() const
+    {
+        return CharacterInfo;
+    }
 
-	void DieEnd();
+    void SetCharacterInfo(FCharacterInfo NewCharacterInfo)
+    {
+        CharacterInfo = NewCharacterInfo;
+        Attributes->InitHealth(CharacterInfo.BaseHealth);
+        Attributes->InitStamina(CharacterInfo.BaseStamina);
+        Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
+        Attributes->BaseHealth = CharacterInfo.BaseHealth;
+        Attributes->BaseStamina = CharacterInfo.BaseStamina;
+    }
 
-	UFUNCTION(BlueprintCallable)
-	float GetHealth() const;
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+    TSubclassOf<class UGameplayEffect> DefaultAttributeEffect;
 
-	UFUNCTION(BlueprintCallable)
-	float GetMaxHealth() const;
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+    TArray<TSubclassOf<class UGameplayAbility>> DefaultAbilities;
 
-	UFUNCTION(BlueprintCallable)
-	float GetStamina() const;
+    /* The character's base info. Defined in DT_EntityTable. */
+    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Attributes")
+    FCharacterInfo CharacterInfo;
 
-	UFUNCTION(BlueprintCallable)
-	float GetMaxStamina() const;
+    /* Whether the character can receive damage or not. */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Abilities")
+    bool bCanReceiveDamage = true;
 
-	void OnHealthChanged(const FOnAttributeChangeData& Data);
+    /* Handle for IFrame events. */
+    FTimerHandle IFrameHandle;
 
-	// Components
+    /* Montage to play when the character receives damage. */
+    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+    UAnimMontage* HitMontage;
 
-	UFUNCTION()
-	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+    /* Broadcasts when the character receives damage. */
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Combat")
+    FDamaged Damaged;
 
-	// Montage
+    /* Broadcasts when the character's health has reached 0 (death). */
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Combat")
+    FDied Died;
 
-	UFUNCTION(BlueprintCallable)
-	bool PlayMontage(UAnimMontage* Montage, UObject* InObject = nullptr, const FName InFunctionName = "", float PlayRate = 1.0f);
-	bool PlayMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE float GetHealth() const
+    {
+        return Attributes->GetHealth();
+    }
 
-	// Movement
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE bool IsAlive() const
+    {
+        return GetHealth() > 0.0f;
+    }
 
-	UFUNCTION(BlueprintCallable)
-	float GetMovementSpeed() { return GetCharacterMovement()->MaxWalkSpeed; }
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    FORCEINLINE bool IsRolling() const
+    {
+        return AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Character.State.IsRolling"));
+    }
 
-	UFUNCTION(BlueprintCallable)
-	void SetMovementSpeed(float NewSpeed) { GetCharacterMovement()->MaxWalkSpeed = NewSpeed; }
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE bool IsInvulnerable() const
+    {
+        FGameplayTag InvulnerableTag = FGameplayTag::RequestGameplayTag(FName("Character.State.Invulnerable"));
+        bool bIsInvulnerable = AbilitySystemComponent->HasMatchingGameplayTag(InvulnerableTag);
+        return bIsInvulnerable;
+    }
 
-	UFUNCTION(BlueprintCallable)
-	virtual bool CanSprint() { return false; }
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE void ReceiveDamage(float InDamage)
+    {
+        //float OldHealth = Attributes->GetHealth();
+        //UE_LOG(LogTemp, Warning, TEXT("Old health: %f"), OldHealth);
+        //float NewHealth = FMath::Clamp(OldHealth - InDamage, 0.0f, CharacterInfo.BaseHealth);
+        ////Attributes->SetHealth(NewHealth);
+        //Damaged.Broadcast(InDamage, NewHealth, OldHealth);
+        //UpdateHealthBar(InDamage);
 
-	UFUNCTION(BlueprintCallable)
-	virtual void StartSprint();
+        //if (GetHealth() <= 0.0f)
+        //{
+        //    Die();
+        //}
+        //else
+        //{
+        //    float Duration = PlayAnimMontage(HitMontage);
 
-	UFUNCTION(BlueprintCallable)
-	virtual void EndSprint();
+        //    // When damage is applied, temporarily disable the ability to receive damage. This will be re-enabled
+        //    // when the hit montage is complete.
+        //    EnableIFrameForDuration(Duration);
+        //}
+    }
 
-	UFUNCTION(BlueprintCallable)
-	virtual bool CanRoll() { return false; }
+    /* Enables IFrames. This sets bCanReceiveDamage to false. */
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE void EnableIFrame()
+    {
+        bCanReceiveDamage = false;
+    }
 
-	UFUNCTION(BlueprintCallable)
-	virtual void StartRoll();
+    /* Enables IFrames for the specified Duration. This sets bCanReceiveDamage to false until the Duration has been reached. */
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE void EnableIFrameForDuration(float Duration)
+    {
+        bCanReceiveDamage = false;
+        GetWorld()->GetTimerManager().SetTimer(IFrameHandle, this, &AUnrealSoulsCharacter::DisableIFrame, Duration);
+    }
 
-	UFUNCTION(BlueprintCallable)
-	virtual void UpdateRoll(float Multiplier);
+    /* Disables IFrames. This sets bCanReceiveDamage to true. */
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE void DisableIFrame()
+    {
+        bCanReceiveDamage = true;
+        if (IFrameHandle.IsValid())
+        {
+            GetWorld()->GetTimerManager().ClearTimer(IFrameHandle);
+        }
+    }
 
-	UFUNCTION(BlueprintCallable)
-	virtual void EndRoll();
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    FORCEINLINE void Die()
+    {
+        bCanReceiveDamage = false;
+        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Died.Broadcast();
+    }
 
-	// Targeting
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE void UpdateHealthBar(float InDamage)
+    {
+        UStatusBar* HealthBar = Cast<UStatusBar>(HealthBarComponent->GetWidget());
+        if (!HealthBar || !HealthBar->StatusBar)
+        {
+            UE_LOG(LogTemp, Error, TEXT("HealthBar is not valid."));
+            return;
+        }
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool IsTargetable();
+        float Percent = FMath::Clamp(GetHealth() / CharacterInfo.BaseHealth, 0.0f, 1.0f);
+        HealthBar->SetPercent(Percent);
 
-	// Resting
-
-	UFUNCTION(BlueprintCallable)
-	void OnRest(bool bInResting);
-
-	UFUNCTION(BlueprintCallable)
-	void OnRestEnd(UAnimMontage* Montage, bool bInterrupted);
-
-	UFUNCTION(BlueprintCallable)
-	void OnUnrestEnd(UAnimMontage* Montage, bool bInterrupted);
-
-	// Attacking
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void OnAttack();
-
-protected:
-	FGameplayTag DeadTag;
-	FGameplayTag EffectRemoveOnDeathTag;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	TArray<TSubclassOf<class UCharacterGameplayAbility>> CharacterAbilities;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	TSubclassOf<class UGameplayEffect> DefaultAttributes;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	TSubclassOf<class UGameplayEffect> StartupEffect;
-
-	virtual void AddCharacterAbilities();
-	virtual void RemoveCharacterAbilities();
-	virtual void InitializeAttributes();
-	virtual void AddStartupEffect();
-
-	virtual void SetHealth(float NewHealth);
-	virtual void SetStamina(float NewStamina);
+        HealthBar->ShowText(2.0f);
+        HealthBar->SetText(FText::FromString(FString::SanitizeFloat(InDamage, 0)));
+    }
 };

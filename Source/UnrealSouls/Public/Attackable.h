@@ -2,16 +2,16 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "UObject/Interface.h"
-#include "StatusComponent.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Abilities/CharacterAbilitySystemComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "CoreMinimal.h"
+#include "StatusComponent.h"
+#include "UObject/Interface.h"
 
 #include "Attackable.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(BlueprintType)
+UINTERFACE(BlueprintType, MinimalAPI, meta = (CannotImplementInterfaceInBlueprint))
 class UAttackable : public UInterface
 {
 	GENERATED_BODY()
@@ -20,8 +20,4 @@ class UAttackable : public UInterface
 class UNREALSOULS_API IAttackable
 {
 	GENERATED_BODY()
-
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
-public:
-
 };
