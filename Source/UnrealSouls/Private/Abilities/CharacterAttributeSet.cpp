@@ -30,8 +30,8 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
         SetHealth(FMath::Clamp(GetHealth(), 0.0f, BaseHealth));
 
         // Update the character's health bar with the damage value
-        float DamageDealt = PreHealthChanged - GetHealth();
-        Character->UpdateHealthBar(DamageDealt);
+        float DamageTaken = PreHealthChanged - GetHealth();
+        Character->UpdateHealthBar(DamageTaken);
 
         // If health is <=0, kill the character 
         if (GetHealth() <= 0.0f)

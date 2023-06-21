@@ -51,6 +51,9 @@ class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAtt
 
 public:
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<UStaticMeshComponent> WeaponComponent;
+
+    UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UCharacterAbilitySystemComponent> AbilitySystemComponent;
 
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Attributes")

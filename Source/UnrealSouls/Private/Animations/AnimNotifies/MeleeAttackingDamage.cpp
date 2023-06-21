@@ -9,6 +9,7 @@
 UMeleeAttackingDamage::UMeleeAttackingDamage()
 {
     TraceRadius = 100.0f;
+    bShowTrace = false;
     SocketToTrace = "hand_rSocket";
     TagToSend = FGameplayTag::RequestGameplayTag("Character.Action.Damaged");
 }
@@ -29,9 +30,18 @@ void UMeleeAttackingDamage::NotifyTick(
 
         TArray<AActor*> ActorsFound;
 
-        // Trace overlapping actors from the socket location with the trace radius
+        // Trace overlapping actors with the owner's weapon collision
+        // DrawDebugSphere(const UObject* WorldContextObject, FVector const Center, float Radius, int32 Segments, FLinearColor Color, float LifeTime, float Thickness)
+
         UKismetSystemLibrary::SphereOverlapActors(
             OwnerRef->GetWorld(), MeshComp->GetSocketLocation(SocketToTrace), TraceRadius, ObjectTypes, nullptr, ActorsToIgnore, ActorsFound);
+
+        if (bShowTrace)
+        {
+            FLinearColor DrawColor = ActorsFound.Num() > 0 ? FLinearColor::Green : FLinearColor::Red;
+            UKismetSystemLibrary::DrawDebugSphere(
+                OwnerRef->GetWorld(), OwnerRef->GetMesh()->GetSocketLocation(SocketToTrace), TraceRadius, 12, DrawColor, 2.0f, 0.25f);
+        }
 
         // For each actor we've found, trigger damage
         for (AActor* OverlapActor : ActorsFound)
@@ -53,8 +63,6 @@ void UMeleeAttackingDamage::NotifyTick(
             GameplayEventData.Target = OverlapActor;
             GameplayEventData.TargetData = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(OverlapCharacter);
             UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerRef, TagToSend, GameplayEventData);
-
-            
         }
     }
 }
