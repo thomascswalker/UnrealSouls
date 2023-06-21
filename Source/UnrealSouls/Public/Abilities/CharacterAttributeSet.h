@@ -32,8 +32,15 @@ public:
     FGameplayAttributeData Stamina;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Stamina)
 
+    UPROPERTY(BlueprintReadOnly, Category = "Attributes")
+    FGameplayAttributeData AttackPower;
+    ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, AttackPower)
+
     float BaseHealth;
     float BaseStamina;
+    float PreHealthChanged;
+    float AttackerPower;
 
+    bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
     void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 };

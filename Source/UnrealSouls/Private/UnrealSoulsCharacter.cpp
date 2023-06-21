@@ -43,6 +43,7 @@ void AUnrealSoulsCharacter::BeginPlay()
 
         Attributes->InitHealth(CharacterInfo.BaseHealth);
         Attributes->InitStamina(CharacterInfo.BaseStamina);
+        Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
     }
 }
 

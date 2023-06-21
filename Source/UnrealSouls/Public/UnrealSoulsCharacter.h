@@ -81,8 +81,11 @@ public:
     void SetCharacterInfo(FCharacterInfo NewCharacterInfo)
     {
         CharacterInfo = NewCharacterInfo;
-        Attributes->SetHealth(CharacterInfo.BaseHealth);
-        Attributes->SetStamina(CharacterInfo.BaseStamina);
+        Attributes->InitHealth(CharacterInfo.BaseHealth);
+        Attributes->InitStamina(CharacterInfo.BaseStamina);
+        Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
+        Attributes->BaseHealth = CharacterInfo.BaseHealth;
+        Attributes->BaseStamina = CharacterInfo.BaseStamina;
     }
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
@@ -143,25 +146,25 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Combat")
     FORCEINLINE void ReceiveDamage(float InDamage)
     {
-        float OldHealth = Attributes->GetHealth();
-        UE_LOG(LogTemp, Warning, TEXT("Old health: %f"), OldHealth);
-        float NewHealth = FMath::Clamp(OldHealth - InDamage, 0.0f, CharacterInfo.BaseHealth);
-        Attributes->SetHealth(NewHealth);
-        Damaged.Broadcast(InDamage, NewHealth, OldHealth);
-        UpdateHealthBar(InDamage);
+        //float OldHealth = Attributes->GetHealth();
+        //UE_LOG(LogTemp, Warning, TEXT("Old health: %f"), OldHealth);
+        //float NewHealth = FMath::Clamp(OldHealth - InDamage, 0.0f, CharacterInfo.BaseHealth);
+        ////Attributes->SetHealth(NewHealth);
+        //Damaged.Broadcast(InDamage, NewHealth, OldHealth);
+        //UpdateHealthBar(InDamage);
 
-        if (GetHealth() <= 0.0f)
-        {
-            Die();
-        }
-        else
-        {
-            float Duration = PlayAnimMontage(HitMontage);
+        //if (GetHealth() <= 0.0f)
+        //{
+        //    Die();
+        //}
+        //else
+        //{
+        //    float Duration = PlayAnimMontage(HitMontage);
 
-            // When damage is applied, temporarily disable the ability to receive damage. This will be re-enabled
-            // when the hit montage is complete.
-            EnableIFrameForDuration(Duration);
-        }
+        //    // When damage is applied, temporarily disable the ability to receive damage. This will be re-enabled
+        //    // when the hit montage is complete.
+        //    EnableIFrameForDuration(Duration);
+        //}
     }
 
     /* Enables IFrames. This sets bCanReceiveDamage to false. */
