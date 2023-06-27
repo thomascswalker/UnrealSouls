@@ -1,0 +1,6 @@
+estus 7500
+souls 7501
+humanity 7570
+
+sitting cross legged 7635
+sitting bonfire 7701, 7825

@@ -15,31 +15,33 @@
     GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName)               \
     GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
-/**
- *
- */
 UCLASS()
 class UNREALSOULS_API UCharacterAttributeSet : public UAttributeSet
 {
     GENERATED_BODY()
 
 public:
+    /* Health attribute. When this hits 0, the character dies. */
     UPROPERTY(BlueprintReadOnly, Category = "Attributes")
     FGameplayAttributeData Health;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Health)
 
+    /* Stamina attribute. When this hits 0, the character cannot perform any stamina-draining actions. */
     UPROPERTY(BlueprintReadOnly, Category = "Attributes")
     FGameplayAttributeData Stamina;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, Stamina)
 
+    /* Attack Power attribute. This is a multiplier on the actual attack the character is performing. */
     UPROPERTY(BlueprintReadOnly, Category = "Attributes")
     FGameplayAttributeData AttackPower;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, AttackPower)
 
+    /* The base (or max) health of the character. */
     float BaseHealth;
+    /* The base (or max) stamina of the character. */
     float BaseStamina;
+    /* Health value prior to the Gameplay Effect being executed. This is used to calculate the damage taken. */
     float PreHealthChanged;
-    float AttackerPower;
 
     bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
     void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;

@@ -51,6 +51,9 @@ class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAtt
 
 public:
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<UStaticMeshComponent> WeaponComponent;
+
+    UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UCharacterAbilitySystemComponent> AbilitySystemComponent;
 
     UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
@@ -193,11 +196,20 @@ public:
         }
     }
 
+    /* Called when the character's health reaches zero. */
     UFUNCTION(BlueprintCallable, Category = "Combat")
     FORCEINLINE void Die()
     {
+        // Disable damage
         bCanReceiveDamage = false;
-        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+        // Disable collision with pawns (but preserve collision with the environment)
+        GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+
+        // Disable movement
+        GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+        // Broadcast that this character has died
         Died.Broadcast();
     }
 

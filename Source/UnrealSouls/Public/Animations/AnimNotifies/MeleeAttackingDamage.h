@@ -22,6 +22,8 @@ public:
     UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
     float TraceRadius;
     UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+    bool bShowTrace;
+    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
     FName SocketToTrace;
     UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
     FGameplayTag TagToSend;

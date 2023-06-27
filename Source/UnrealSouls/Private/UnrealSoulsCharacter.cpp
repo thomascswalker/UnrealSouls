@@ -19,6 +19,10 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 {
     bAlwaysRelevant = true;
 
+    // Scene components
+    WeaponComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponComponent"));
+    WeaponComponent->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+
     // Actor components
     AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
     Attributes = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("AttributeSet"));
