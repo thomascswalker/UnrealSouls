@@ -234,6 +234,23 @@ void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& Act
 
 void AUnrealSoulsPlayerController::OnBlockCompleted(const FInputActionValue& ActionValue) {}
 
-void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text) {}
+void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text)
+{
+    if (PromptWidget != nullptr)
+    {
+        HidePrompt();
+    }
 
-void AUnrealSoulsPlayerController::HidePrompt_Implementation() {}
+    PromptWidget = Cast<UPrompt>(CreateWidget(this, UPrompt::StaticClass()));
+    PromptWidget->SetText(Text);
+    PromptWidget->AddToViewport();
+}
+
+void AUnrealSoulsPlayerController::HidePrompt_Implementation()
+{
+    if (PromptWidget != nullptr)
+    {
+        PromptWidget->RemoveFromParent();
+        PromptWidget = nullptr;
+    }
+}
