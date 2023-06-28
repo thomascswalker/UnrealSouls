@@ -41,9 +41,6 @@ enum class ERollOrientation : uint8
     Right
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDamaged, float, Damage, float, NewHealth, float, OldHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDied);
-
 UCLASS(config = Game)
 class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAttackable, public IAbilitySystemInterface
 {
@@ -70,10 +67,46 @@ public:
     virtual void PossessedBy(AController* NewController) override;
 
 public:
+    FORCEINLINE bool PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName = "", float PlayRate = 1.0f)
+    {
+        UAnimInstance* AnimInstance = (GetMesh()) ? GetMesh()->GetAnimInstance() : nullptr;
+        if (Montage && AnimInstance)
+        {
+            float MontageLength = AnimInstance->Montage_Play(Montage, PlayRate);
+            const bool bPlayedSuccessfully = (MontageLength > 0.f);
+            if (!bPlayedSuccessfully)
+            {
+                return false;
+            }
+
+            FOnMontageEnded OnMontageEndedDelegate;
+            OnMontageEndedDelegate.BindUFunction(InObject, InFunctionName);
+            AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, Montage);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+public:
     UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
     virtual void InitializeAttributes();
     virtual void InitializeAbilities();
+
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE void AddGameplayTag(const FGameplayTag& GameplayTag)
+    {
+        AbilitySystemComponent->AddLooseGameplayTag(GameplayTag);
+    }
+
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE void RemoveGameplayTag(const FGameplayTag& GameplayTag)
+    {
+        AbilitySystemComponent->RemoveLooseGameplayTag(GameplayTag);
+    }
 
     UFUNCTION(BlueprintCallable)
     FCharacterInfo GetCharacterInfo() const
@@ -113,10 +146,12 @@ public:
     UAnimMontage* HitMontage;
 
     /* Broadcasts when the character receives damage. */
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDamaged, float, Damage, float, NewHealth, float, OldHealth);
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Combat")
     FDamaged Damaged;
 
     /* Broadcasts when the character's health has reached 0 (death). */
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDied);
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Combat")
     FDied Died;
 
@@ -147,28 +182,7 @@ public:
     }
 
     UFUNCTION(BlueprintCallable, Category = "Combat")
-    FORCEINLINE void ReceiveDamage(float InDamage)
-    {
-        //float OldHealth = Attributes->GetHealth();
-        //UE_LOG(LogTemp, Warning, TEXT("Old health: %f"), OldHealth);
-        //float NewHealth = FMath::Clamp(OldHealth - InDamage, 0.0f, CharacterInfo.BaseHealth);
-        ////Attributes->SetHealth(NewHealth);
-        //Damaged.Broadcast(InDamage, NewHealth, OldHealth);
-        //UpdateHealthBar(InDamage);
-
-        //if (GetHealth() <= 0.0f)
-        //{
-        //    Die();
-        //}
-        //else
-        //{
-        //    float Duration = PlayAnimMontage(HitMontage);
-
-        //    // When damage is applied, temporarily disable the ability to receive damage. This will be re-enabled
-        //    // when the hit montage is complete.
-        //    EnableIFrameForDuration(Duration);
-        //}
-    }
+    FORCEINLINE void ReceiveDamage(float InDamage) {}
 
     /* Enables IFrames. This sets bCanReceiveDamage to false. */
     UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -228,5 +242,73 @@ public:
 
         HealthBar->ShowText(2.0f);
         HealthBar->SetText(FText::FromString(FString::SanitizeFloat(InDamage, 0)));
+    }
+
+public:
+    /* Abilities */
+
+    UFUNCTION(BlueprintCallable)
+    void Attack()
+    {
+        AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Character.Action.Attack")));
+    }
+
+    UFUNCTION(BlueprintCallable)
+    void Roll()
+    {
+        AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Character.Action.Roll")));
+    }
+
+public:
+    /* Resting */
+
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRestingChanged, bool, bRestingState);
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Resting")
+    FRestingChanged RestingChanged;
+
+    bool bResting = false;
+
+    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Animations")
+    UAnimMontage* RestStartMontage;
+
+    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Animations")
+    UAnimMontage* RestEndMontage;
+
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE void SetResting(bool bInResting)
+    {
+        bResting = bInResting;
+
+        // We are now resting
+        if (bResting)
+        {
+            GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+            AddGameplayTag(FGameplayTag::RequestGameplayTag("Character.State.IsResting"));
+        }
+
+        UAnimMontage* TransitionMontage = bResting ? RestStartMontage : RestEndMontage;
+        if (TransitionMontage != nullptr)
+        {
+            PlayMontage(TransitionMontage, this, "OnRestMontageEnded");
+        }
+    }
+
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE void OnRestMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+    {
+        // We have stopped resting
+        if (!bResting)
+        {
+            GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+            RemoveGameplayTag(FGameplayTag::RequestGameplayTag("Character.State.IsResting"));
+        }
+
+        RestingChanged.Broadcast(bResting);
+    }
+
+    UFUNCTION(BlueprintCallable, BlueprintPure)
+    FORCEINLINE bool IsResting()
+    {
+        return bResting;
     }
 };
