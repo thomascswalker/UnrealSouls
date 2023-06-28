@@ -250,7 +250,6 @@ void AUnrealSoulsPlayerController::HidePrompt_Implementation()
 {
     if (PromptWidget != nullptr)
     {
-        PromptWidget->RemoveFromParent();
-        PromptWidget = nullptr;
+        PromptWidget->OnHide();
     }
 }
