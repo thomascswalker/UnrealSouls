@@ -1,0 +1,3 @@
+SitAtBonfire 7700
+BonfireIdle 7701
+GetUpFromBonfire 7702
