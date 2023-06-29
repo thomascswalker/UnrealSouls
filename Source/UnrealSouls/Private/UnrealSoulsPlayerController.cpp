@@ -24,13 +24,11 @@ void AUnrealSoulsPlayerController::BeginPlay()
 
 void AUnrealSoulsPlayerController::Tick(float DeltaTime)
 {
-    if (CurrentTarget.GetObject() != nullptr)
+    if (CurrentTarget != nullptr)
     {
-        AUnrealSoulsCharacter* TargetActor = Cast<AUnrealSoulsCharacter>(CurrentTarget.GetObject());
-        if (TargetActor)
+        if (CurrentTarget)
         {
-            const bool bIsTargetable = ITargetable::Execute_IsTargetable(TargetActor);
-            if (!bIsTargetable)
+            if (!CurrentTarget->IsAlive())
             {
                 Untarget();
                 return;
@@ -41,7 +39,7 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
             {
                 // Get the LookAt rotation from the player to the target
                 // Rotate the controller
-                FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(PlayerCharacter->GetActorLocation(), TargetActor->GetActorLocation());
+                FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(PlayerCharacter->GetActorLocation(), CurrentTarget->GetActorLocation());
                 SetControlRotation(LookAt);
 
                 // Rotate the player, but only the Yaw
@@ -51,7 +49,7 @@ void AUnrealSoulsPlayerController::Tick(float DeltaTime)
             // Get the 2D Coordinates of the new target location
             FVector2D ScreenLocation;
             const bool bProjected =
-                UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(this, TargetActor->GetActorLocation(), ScreenLocation, true);
+                UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(this, CurrentTarget->GetActorLocation(), ScreenLocation, true);
             if (bProjected)
             {
                 TargetLocationChanged.Broadcast(ScreenLocation);
@@ -168,7 +166,7 @@ void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& 
 
 void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& ActionValue)
 {
-    if (CurrentTarget.GetObject() != nullptr)
+    if (CurrentTarget != nullptr)
     {
         Untarget();
         return;
@@ -203,17 +201,16 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
         return;
     }
 
-    AActor* ClosestActor = nullptr;
     for (FHitResult& Hit : OutHits)
     {
         // Is this a valid targetable pawn?
-        ITargetable* TargetPawn = Cast<ITargetable>(Hit.GetActor());
-        if (!TargetPawn)
+        AUnrealSoulsCharacter* Target = Cast<AUnrealSoulsCharacter>(Hit.GetActor());
+        if (!Target)
         {
             continue;
         }
 
-        CurrentTarget.SetObject(Hit.GetActor());
+        CurrentTarget = Target;
         TargetVisibilityChanged.Broadcast(true);
         return;
     }
@@ -221,7 +218,7 @@ void AUnrealSoulsPlayerController::OnTargetTriggered(const FInputActionValue& Ac
 
 void AUnrealSoulsPlayerController::Untarget()
 {
-    CurrentTarget.SetObject(nullptr);
+    CurrentTarget = nullptr;
     TargetVisibilityChanged.Broadcast(false);
 }
 

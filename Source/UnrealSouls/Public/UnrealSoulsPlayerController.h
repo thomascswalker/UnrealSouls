@@ -68,7 +68,7 @@ public:
     float TargetDistance = 1000.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-    TScriptInterface<ITargetable> CurrentTarget = nullptr;
+    AUnrealSoulsCharacter* CurrentTarget = nullptr;
 
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetVisibilityChanged, const bool, bVisibility);
     UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatchers")

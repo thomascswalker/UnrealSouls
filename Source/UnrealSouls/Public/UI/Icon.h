@@ -47,7 +47,7 @@ public:
         if (Texture)
         {
             Image->SetBrushFromTexture(Texture);
-            Image->SetBrushSize(FVector2D(48.0f, 48.0f));
+            Image->SetDesiredSizeOverride(FVector2D(48.0f, 48.0f));
             return true;
         }
         else
