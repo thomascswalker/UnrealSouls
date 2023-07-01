@@ -11,10 +11,10 @@
 #define MAKE_ICON_PATH(x) "Texture2D'/Game/Textures/Interface/Controls/" + x + "." + x + "'"
 
 static const TMap<FKey, FString> IconNameMap = {
-    { EKeys::Gamepad_FaceButton_Bottom, "T_Xbox_A" },
-    { EKeys::Gamepad_FaceButton_Right, "T_Xbox_B" },
-    { EKeys::Gamepad_FaceButton_Left, "T_Xbox_X" },
-    { EKeys::Gamepad_FaceButton_Top, "T_Xbox_Y" },
+    { EKeys::Gamepad_FaceButton_Bottom, "T_X_A_Color" },
+    { EKeys::Gamepad_FaceButton_Right, "T_X_B_Color" },
+    { EKeys::Gamepad_FaceButton_Left, "T_X_X_Color" },
+    { EKeys::Gamepad_FaceButton_Top, "T_X_Y_Color" },
 };
 
 UCLASS() class UNREALSOULS_API UIcon : public UUserWidget
