@@ -3,3 +3,4 @@
 
 #include "UI/Prompt.h"
 
+void UPrompt::OnHide_Implementation() {}

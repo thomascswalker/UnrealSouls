@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+
 #include "EntitySubsystem.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREALSOULS_API UEntitySubsystem : public UWorldSubsystem
+class UNREALSOULS_API UEntitySubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 

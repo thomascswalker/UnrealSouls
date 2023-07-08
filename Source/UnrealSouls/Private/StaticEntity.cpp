@@ -4,6 +4,7 @@
 #include "UnrealSoulsPlayerCharacter.h"
 #include "UnrealSoulsPlayerController.h"
 #include "Components/SceneComponent.h"
+#include "PlayerFunctionLibrary.h"
 
 // Sets default values
 AStaticEntity::AStaticEntity()
@@ -50,7 +51,13 @@ void AStaticEntity::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		return;
 	}
-	Controller->ShowPrompt(GetActionText());
+    
+	if (!IInteractive::Execute_CanInteract(this))
+	{
+        return;
+	}
+
+	UPlayerFunctionLibrary::ShowPrompt(this, GetActionText());
 	Controller->CurrentInteractiveEntity.SetInterface(this);
 	Controller->CurrentInteractiveEntity.SetObject(this);
 }
@@ -67,7 +74,13 @@ void AStaticEntity::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	{
 		return;
 	}
-	Controller->HidePrompt();
+
+	if (!IInteractive::Execute_CanInteract(this))
+    {
+        return;
+    }
+
+    UPlayerFunctionLibrary::HidePrompt(this);
 	Controller->CurrentInteractiveEntity.SetInterface(nullptr);
 	Controller->CurrentInteractiveEntity.SetObject(nullptr);
 }

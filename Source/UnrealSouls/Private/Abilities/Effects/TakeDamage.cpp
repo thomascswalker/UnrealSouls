@@ -25,12 +25,6 @@ UTakeDamage::UTakeDamage()
 	Modifier.ModifierOp = EGameplayModOp::Additive;
 	Modifier.ModifierMagnitude = ModifierMagnitude;
 
-	//// Set ignore tags
-	//Modifier.TargetTags.IgnoreTags.AddTag(FGameplayTag::RequestGameplayTag("Character.State.Invulnerable"));
-
 	// Add the tag to the modifier list
 	Modifiers.Add(Modifier);
-
-	//// Grant the Invulnerable tag to the target actor
-	//InheritableOwnedTagsContainer.AddTag(FGameplayTag::RequestGameplayTag("Character.State.Invulnerable"));
 }

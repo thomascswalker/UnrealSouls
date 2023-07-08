@@ -21,4 +21,7 @@ public:
 	{
         TextBlock->SetText(InText);
 	}
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void OnHide();
 };
