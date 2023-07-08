@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
-#include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 
 #include "Interactive.h"
 
@@ -15,37 +15,41 @@
 UCLASS()
 class UNREALSOULS_API AStaticEntity : public AActor, public IInteractive
 {
-	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	AStaticEntity();
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    AStaticEntity();
 
     UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> Mesh;
+    TObjectPtr<UStaticMeshComponent> Mesh;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
-	TObjectPtr<UCapsuleComponent> Collider;
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
+    TObjectPtr<UCapsuleComponent> Collider;
+
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+    AActor* InteractingActor;
 
 protected:
-	virtual void OnConstruction(const FTransform& Transform) override;
+    virtual void OnConstruction(const FTransform& Transform) override;
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void Interact(AActor* OtherActor);
+    void Interact(AActor* OtherActor);
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure)
-	FText GetActionText();
+    FText GetActionText();
 
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    UFUNCTION()
+    void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+        bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
-	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+    UFUNCTION()
+    void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

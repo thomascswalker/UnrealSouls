@@ -52,4 +52,7 @@ public:
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     FInteractPrompt GetPrompt();
+
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    bool CanInteract();
 };

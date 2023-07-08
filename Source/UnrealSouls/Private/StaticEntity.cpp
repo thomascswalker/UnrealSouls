@@ -52,6 +52,11 @@ void AStaticEntity::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		return;
 	}
     
+	if (!IInteractive::Execute_CanInteract(this))
+	{
+        return;
+	}
+
 	UPlayerFunctionLibrary::ShowPrompt(this, GetActionText());
 	Controller->CurrentInteractiveEntity.SetInterface(this);
 	Controller->CurrentInteractiveEntity.SetObject(this);
@@ -69,6 +74,12 @@ void AStaticEntity::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	{
 		return;
 	}
+
+	if (!IInteractive::Execute_CanInteract(this))
+    {
+        return;
+    }
+
     UPlayerFunctionLibrary::HidePrompt(this);
 	Controller->CurrentInteractiveEntity.SetInterface(nullptr);
 	Controller->CurrentInteractiveEntity.SetObject(nullptr);
