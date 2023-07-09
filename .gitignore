@@ -76,3 +76,6 @@ DerivedDataCache/*
 # Misc ignore
 *.obj
 *.mtl
+
+# Ignore source assets
+*/Assets
