@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Components/CapsuleComponent.h"
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 
@@ -17,17 +18,18 @@ class UNREALSOULS_API UMeleeAttackingDamage : public UAnimNotifyState
     GENERATED_BODY()
 
 public:
-    UMeleeAttackingDamage();
-
-    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
-    float TraceRadius;
-    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
-    bool bShowTrace;
-    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
-    FName SocketToTrace;
     UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
     FGameplayTag TagToSend;
 
-    virtual void NotifyTick(
-        USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference);
+    USkeletalMeshComponent* Mesh;
+    UCapsuleComponent* Hitbox;
+
+    virtual void NotifyBegin(
+        USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference);
+
+    virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference);
+
+    UFUNCTION()
+    void OnHitboxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+        bool bFromSweep, const FHitResult& SweepResult);
 };

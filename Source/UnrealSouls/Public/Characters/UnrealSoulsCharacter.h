@@ -18,8 +18,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayEffectTypes.h"
 #include "InputActionValue.h"
-#include "Interfaces/Attackable.h"
-#include "Interfaces/Targetable.h"
+#include "Interfaces/CombatInterface.h"
 #include "UI/StatusBar.h"
 
 #include "UnrealSoulsCharacter.generated.h"
@@ -42,7 +41,7 @@ enum class ERollOrientation : uint8
 };
 
 UCLASS(config = Game)
-class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAttackable, public IAbilitySystemInterface
+class AUnrealSoulsCharacter : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
 {
     GENERATED_BODY()
 
