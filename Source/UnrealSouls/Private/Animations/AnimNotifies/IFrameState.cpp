@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Animations/AnimNotifies/IFrameState.h"
-#include "UnrealSoulsCharacter.h"
+#include "Characters/UnrealSoulsCharacter.h"
 
 void UIFrameState::NotifyBegin(
     USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)

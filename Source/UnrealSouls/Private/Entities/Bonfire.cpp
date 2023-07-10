@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Entities/Bonfire.h"
-#include "UnrealSoulsCharacter.h"
-#include "EntitySubsystem.h"
-#include "PlayerFunctionLibrary.h"
+#include "Characters/PlayerFunctionLibrary.h"
+#include "Characters/UnrealSoulsCharacter.h"
+#include "Entities/EntitySubsystem.h"
 
 // Sets default values
 ABonfire::ABonfire()
@@ -53,7 +53,7 @@ void ABonfire::Interact_Implementation(AActor* OtherActor)
 
     // Hide the interaction prompt
     UPlayerFunctionLibrary::HidePrompt(this);
-     
+
     // Respawn all entities
     UEntitySubsystem* EntitySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UEntitySubsystem>();
     EntitySubsystem->RespawnAllEntities();
@@ -65,4 +65,4 @@ FText ABonfire::GetActionText_Implementation()
     return FText::FromString(Text);
 }
 
-void ABonfire::LightBonfire_Implementation(){}
+void ABonfire::LightBonfire_Implementation() {}
