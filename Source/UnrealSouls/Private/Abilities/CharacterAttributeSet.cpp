@@ -2,10 +2,10 @@
 
 #include "Abilities/CharacterAttributeSet.h"
 #include "Abilities/CharacterAbilitySystemComponent.h"
+#include "Characters/UnrealSoulsCharacter.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
-#include "UnrealSoulsCharacter.h"
 
 bool UCharacterAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
 {
@@ -33,7 +33,7 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
         float DamageTaken = PreHealthChanged - GetHealth();
         Character->UpdateHealthBar(DamageTaken);
 
-        // If health is <=0, kill the character 
+        // If health is <=0, kill the character
         if (GetHealth() <= 0.0f)
         {
             Character->Die();

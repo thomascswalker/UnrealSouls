@@ -3,8 +3,8 @@
 #include "Animations/AnimNotifies/MeleeAttackingDamage.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Characters/UnrealSoulsCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "UnrealSoulsCharacter.h"
 
 UMeleeAttackingDamage::UMeleeAttackingDamage()
 {
