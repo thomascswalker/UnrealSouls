@@ -3,7 +3,7 @@
 #include "Animations/AnimNotifies/IFrameNotifyState.h"
 #include "Characters/UnrealSoulsCharacter.h"
 
-void UIFrameState::NotifyBegin(
+void UIFrameNotifyState::NotifyBegin(
     USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
     AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(MeshComp->GetOwner());
@@ -15,7 +15,7 @@ void UIFrameState::NotifyBegin(
     Character->EnableIFrameForDuration(TotalDuration);
 }
 
-void UIFrameState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UIFrameNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
     AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(MeshComp->GetOwner());
     if (!Character)

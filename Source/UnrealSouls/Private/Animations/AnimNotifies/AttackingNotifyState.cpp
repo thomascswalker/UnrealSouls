@@ -53,16 +53,15 @@ void UAttackingNotifyState::OnHitboxOverlap(UPrimitiveComponent* OverlappedCompo
     AUnrealSoulsCharacter* Attacker = Cast<AUnrealSoulsCharacter>(OverlappedComponent->GetOwner());
     AUnrealSoulsCharacter* Defender = Cast<AUnrealSoulsCharacter>(OtherActor);
 
+    // If we don't actually hit a valid character, return
     if (!Defender)
     {
-        UE_LOG(LogTemp, Error, TEXT("Hit non-attackable actor"))
         return;
     }
 
     // Check the character type masks
     if ((Attacker->CharacterInfo.AttackMaskType & Defender->CharacterInfo.DefenseMaskType) != 0)
     {
-        UE_LOG(LogTemp, Display, TEXT("Cannot attack other"))
         return;
     }
 

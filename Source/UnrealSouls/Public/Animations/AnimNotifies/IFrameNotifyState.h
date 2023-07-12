@@ -8,7 +8,7 @@
 #include "IFrameNotifyState.generated.h"
 
 UCLASS()
-class UNREALSOULS_API UIFrameState : public UAnimNotifyState
+class UNREALSOULS_API UIFrameNotifyState : public UAnimNotifyState
 {
     GENERATED_BODY()
 public:

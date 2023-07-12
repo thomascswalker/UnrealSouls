@@ -33,7 +33,7 @@ BreakInheritanceList: AfterColon
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
 BreakStringLiterals: false
-ColumnLimit: 150
+ColumnLimit: 250
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 Cpp11BracedListStyle: false
 EmptyLineBeforeAccessModifier: LogicalBlock
