@@ -17,6 +17,8 @@
 
 AUnrealSoulsCharacter::AUnrealSoulsCharacter()
 {
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.TickInterval = 0.001;
     bAlwaysRelevant = true;
 
     // Scene components
@@ -34,6 +36,9 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
     HealthBarComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 110.0f));
     HealthBarComponent->SetDrawSize(FVector2D(128.0f, 16.0f));
     HealthBarComponent->SetWidgetClass(UStatusBar::StaticClass());
+
+    // AI Options
+    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void AUnrealSoulsCharacter::BeginPlay()
@@ -103,4 +108,9 @@ void AUnrealSoulsCharacter::InitializeAbilities()
     {
         AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability.GetDefaultObject(), 1, 0));
     }
+}
+
+UUserWidget* AUnrealSoulsCharacter::GetHealthBarWidget_Implementation() const
+{
+    return HealthBarComponent->GetWidget();
 }

@@ -29,21 +29,17 @@ public:
     UPROPERTY(BlueprintReadOnly)
     FCharacterInfo CharacterInfo;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(BlueprintReadOnly)
     AUnrealSoulsCharacter* Entity;
 
     // Sets default values for this actor's properties
     AEntitySpawn();
 
-protected:
-    virtual void BeginPlay() override;
-
 public:
     virtual void OnConstruction(const FTransform& Transform) override;
-    virtual void Tick(float DeltaTime) override;
 
-    UFUNCTION(BlueprintCallable)
-    void Spawn();
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void OnSpawn();
 
     UFUNCTION()
     void OnEntityDeath();

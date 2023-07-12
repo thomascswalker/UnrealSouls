@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Animations/AnimNotifies/IFrameState.h"
+#include "Animations/AnimNotifies/IFrameNotifyState.h"
 #include "Characters/UnrealSoulsCharacter.h"
 
 void UIFrameState::NotifyBegin(

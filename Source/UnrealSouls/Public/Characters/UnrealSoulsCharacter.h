@@ -18,8 +18,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayEffectTypes.h"
 #include "InputActionValue.h"
-#include "Interfaces/Attackable.h"
-#include "Interfaces/Targetable.h"
+#include "Interfaces/CombatInterface.h"
 #include "UI/StatusBar.h"
 
 #include "UnrealSoulsCharacter.generated.h"
@@ -42,7 +41,7 @@ enum class ERollOrientation : uint8
 };
 
 UCLASS(config = Game)
-class AUnrealSoulsCharacter : public ACharacter, public ITargetable, public IAttackable, public IAbilitySystemInterface
+class AUnrealSoulsCharacter : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
 {
     GENERATED_BODY()
 
@@ -114,9 +113,11 @@ public:
         return CharacterInfo;
     }
 
+    UFUNCTION(BlueprintCallable)
     void SetCharacterInfo(FCharacterInfo NewCharacterInfo)
     {
         CharacterInfo = NewCharacterInfo;
+
         Attributes->InitHealth(CharacterInfo.BaseHealth);
         Attributes->InitStamina(CharacterInfo.BaseStamina);
         Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
@@ -227,13 +228,17 @@ public:
         Died.Broadcast();
     }
 
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    UUserWidget* GetHealthBarWidget() const;
+
     UFUNCTION(BlueprintCallable)
     FORCEINLINE void UpdateHealthBar(float InDamage)
     {
-        UStatusBar* HealthBar = Cast<UStatusBar>(HealthBarComponent->GetWidget());
+        UStatusBar* HealthBar = Cast<UStatusBar>(ICombatInterface::Execute_GetHealthBarWidget(this));
         if (!HealthBar || !HealthBar->StatusBar)
         {
-            UE_LOG(LogTemp, Error, TEXT("HealthBar is not valid."));
+            UE_LOG(LogTemp, Error, TEXT("HealthBarComponent not found!"));
+            UE_LOG(LogTemp, Display, TEXT("CurrentHealth: %f"), GetHealth())
             return;
         }
 

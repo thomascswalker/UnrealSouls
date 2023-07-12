@@ -22,7 +22,6 @@ class UNREALSOULS_API UCharacterGameplayAbility : public UGameplayAbility
 
 public:
 	UCharacterGameplayAbility();
-	;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
 	EAbilityId AbilityInputId = EAbilityId::None;
