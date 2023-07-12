@@ -18,7 +18,7 @@ struct DamageStatics
 		// Capture the Source's AttackPower. We do want to snapshot this at the moment we create the GameplayEffectSpec that will execute the damage.
 		// (imagine we fire a projectile: we create the GE Spec when the projectile is fired. When it hits the target, we want to use the AttackPower
 		// at the moment the projectile was launched, not when it hits).
-		//DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, AttackPower, Source, true);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, AttackPower, Source, true);
 	}
 };
 
@@ -31,11 +31,14 @@ DamageStatics& Damage()
 void UDamageExecution::Execute_Implementation(
 	const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
+
 	UAbilitySystemComponent* TargetAbilitySystemComponent = ExecutionParams.GetTargetAbilitySystemComponent();
 	UAbilitySystemComponent* SourceAbilitySystemComponent = ExecutionParams.GetSourceAbilitySystemComponent();
 
 	AActor* SourceActor = SourceAbilitySystemComponent ? SourceAbilitySystemComponent->GetOwner() : nullptr;
 	AActor* TargetActor = TargetAbilitySystemComponent ? TargetAbilitySystemComponent->GetOwner() : nullptr;
+
+    UE_LOG(LogTemp, Display, TEXT("Damage execution from %s to %s"), *SourceActor->GetName(), *TargetActor->GetName())
 
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 
@@ -55,6 +58,7 @@ void UDamageExecution::Execute_Implementation(
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Damage().AttackPowerDef, EvaluationParameters, AttackPower);
 
 	float DamageDone = FMath::Min<float>(AttackPower, Health);
+    UE_LOG(LogTemp, Display, TEXT("Damage done: %f"), DamageDone)
 
 	if (DamageDone > 0.f)
 	{

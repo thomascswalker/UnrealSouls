@@ -113,9 +113,11 @@ public:
         return CharacterInfo;
     }
 
+    UFUNCTION(BlueprintCallable)
     void SetCharacterInfo(FCharacterInfo NewCharacterInfo)
     {
         CharacterInfo = NewCharacterInfo;
+
         Attributes->InitHealth(CharacterInfo.BaseHealth);
         Attributes->InitStamina(CharacterInfo.BaseStamina);
         Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
@@ -226,13 +228,17 @@ public:
         Died.Broadcast();
     }
 
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    UUserWidget* GetHealthBarWidget() const;
+
     UFUNCTION(BlueprintCallable)
     FORCEINLINE void UpdateHealthBar(float InDamage)
     {
-        UStatusBar* HealthBar = Cast<UStatusBar>(HealthBarComponent->GetWidget());
+        UStatusBar* HealthBar = Cast<UStatusBar>(ICombatInterface::Execute_GetHealthBarWidget(this));
         if (!HealthBar || !HealthBar->StatusBar)
         {
-            UE_LOG(LogTemp, Error, TEXT("HealthBar is not valid."));
+            UE_LOG(LogTemp, Error, TEXT("HealthBarComponent not found!"));
+            UE_LOG(LogTemp, Display, TEXT("CurrentHealth: %f"), GetHealth())
             return;
         }
 

@@ -4,7 +4,8 @@
 
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "CoreMinimal.h"
-#include "IFrameState.generated.h"
+
+#include "IFrameNotifyState.generated.h"
 
 UCLASS()
 class UNREALSOULS_API UIFrameState : public UAnimNotifyState

@@ -37,6 +37,7 @@ AUnrealSoulsCharacter::AUnrealSoulsCharacter()
     HealthBarComponent->SetDrawSize(FVector2D(128.0f, 16.0f));
     HealthBarComponent->SetWidgetClass(UStatusBar::StaticClass());
 
+    // AI Options
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
@@ -107,4 +108,9 @@ void AUnrealSoulsCharacter::InitializeAbilities()
     {
         AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability.GetDefaultObject(), 1, 0));
     }
+}
+
+UUserWidget* AUnrealSoulsCharacter::GetHealthBarWidget_Implementation() const
+{
+    return HealthBarComponent->GetWidget();
 }

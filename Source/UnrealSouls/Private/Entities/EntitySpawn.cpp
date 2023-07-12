@@ -1,18 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Entities/EntitySpawn.h"
+#include "AIController.h"
 
 // Sets default values
 AEntitySpawn::AEntitySpawn()
 {
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
-}
-
-void AEntitySpawn::BeginPlay()
-{
-    Super::BeginPlay();
-    Spawn();
 }
 
 void AEntitySpawn::OnConstruction(const FTransform& Transform)
@@ -30,7 +25,6 @@ void AEntitySpawn::OnConstruction(const FTransform& Transform)
         if (CharacterInfoPtr)
         {
             CharacterInfo = *CharacterInfoPtr;
-            
         }
         else
         {
@@ -43,35 +37,33 @@ void AEntitySpawn::OnConstruction(const FTransform& Transform)
     }
 }
 
-void AEntitySpawn::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-}
-
-void AEntitySpawn::Spawn()
+void AEntitySpawn::OnSpawn_Implementation()
 {
     FTransform SpawnTransform = GetActorTransform();
     if (Entity != nullptr)
     {
-        Entity->SetActorTransform(SpawnTransform);
-        return;
-    }
-
-    FActorSpawnParameters SpawnParams;
-    SpawnParams.Owner = this;
-    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-    Entity = GetWorld()->SpawnActor<AUnrealSoulsCharacter>(BaseClass, SpawnTransform, SpawnParams);
-    if (Entity == nullptr)
-    {
-        UE_LOG(LogTemp, Error, TEXT("Unable to spawn entity."));
         return;
     }
     else
     {
-        UE_LOG(LogTemp, Display, TEXT("Spawned %s."), *CharacterInfo.Name.ToString());
+        // Defer spawning to allow setting of initial parameters
+        Entity = GetWorld()->SpawnActorDeferred<AUnrealSoulsCharacter>(BaseClass, SpawnTransform, this);
+        UE_LOG(LogTemp, Display, TEXT("Spawned %s."), *CharacterInfo.Name.ToString())
+    }
+
+    if (Entity == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Unable to spawn entity."))
+        return;
+    }
+    else
+    {
         Entity->SetCharacterInfo(CharacterInfo);
         Entity->Died.AddUniqueDynamic(this, &AEntitySpawn::OnEntityDeath);
+
+        // Finish spawning
+        Entity->FinishSpawning(SpawnTransform);
+        UE_LOG(LogTemp, Display, TEXT("Spawned %s."), *CharacterInfo.Name.ToString())
     }
 }
 

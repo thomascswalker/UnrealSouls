@@ -9,6 +9,15 @@
 
 #include "CombatInterface.generated.h"
 
+UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+    Melee,
+    Bow,
+    Sorcery,
+    Miracle,
+    Pyromancy
+};
 
 // This class does not need to be modified.
 UINTERFACE(BlueprintType, Blueprintable)
@@ -24,11 +33,17 @@ class UNREALSOULS_API ICombatInterface
 
 public:
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-    bool IsTargetable();
+    bool IsTargetable() const;
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-    bool CanTakeDamage();
+    bool CanTakeDamage() const;
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-    UCapsuleComponent* GetWeaponHitbox();
+    UCapsuleComponent* GetWeaponHitbox() const;
+
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    ECharacterMaskType GetCharacterTypeMask() const;
+
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    UUserWidget* GetHealthBarWidget() const;
 };

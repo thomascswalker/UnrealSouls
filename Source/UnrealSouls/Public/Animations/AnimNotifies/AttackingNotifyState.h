@@ -3,23 +3,34 @@
 #pragma once
 
 #include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Characters/CharacterInfo.h"
 #include "Components/CapsuleComponent.h"
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Interfaces/CombatInterface.h"
 
-#include "MeleeAttackingDamage.generated.h"
+#include "AttackingNotifyState.generated.h"
 
 /**
  *
  */
 UCLASS()
-class UNREALSOULS_API UMeleeAttackingDamage : public UAnimNotifyState
+class UNREALSOULS_API UAttackingNotifyState : public UAnimNotifyState
 {
     GENERATED_BODY()
 
 public:
-    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Combat")
+    EAttackType AttackType;
+
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Tags")
     FGameplayTag TagToSend;
+
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Tracing")
+    bool bShowTrace;
+
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Tracing")
+    float TraceRadius;
 
     USkeletalMeshComponent* Mesh;
     UCapsuleComponent* Hitbox;

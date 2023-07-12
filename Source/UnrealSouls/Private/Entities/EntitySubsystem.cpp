@@ -16,6 +16,6 @@ void UEntitySubsystem::RespawnAllEntities()
 	for (AActor* Actor : FoundActors)
 	{
 		AEntitySpawn* EntitySpawn = Cast<AEntitySpawn>(Actor);
-		EntitySpawn->Spawn();
+		EntitySpawn->OnSpawn();
 	}
 }
