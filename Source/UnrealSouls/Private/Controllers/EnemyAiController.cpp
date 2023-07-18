@@ -17,6 +17,12 @@ void AEnemyAiController::OnPossess(APawn* InPawn)
     AUnrealSoulsCharacter* Enemy = Cast<AUnrealSoulsCharacter>(InPawn);
     if (Enemy)
     {
+        UBehaviorTree* BehaviorTree = Enemy->GetCharacterInfo().BehaviorTree;
+        if (!BehaviorTree)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Behavior Tree is invalid for %s"), *InPawn->GetName())
+            return;
+        }
         UBlackboardData* BlackboardAsset = Enemy->GetCharacterInfo().BehaviorTree->BlackboardAsset;
         if (ensure(BlackboardAsset))
         {

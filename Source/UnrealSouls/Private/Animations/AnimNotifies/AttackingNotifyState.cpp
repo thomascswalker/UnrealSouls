@@ -18,7 +18,7 @@ void UAttackingNotifyState::NotifyBegin(
 
     Mesh = MeshComp;
 
-    // Depending on the attack type, setup the hitbox differently
+    // Setup hitbox based on attack type
     switch (AttackType)
     {
         case EAttackType::Melee:
@@ -65,6 +65,12 @@ void UAttackingNotifyState::OnHitboxOverlap(UPrimitiveComponent* OverlappedCompo
         return;
     }
 
+    // If the character is invulnerable, return
+    if (Defender->IsInvulnerable())
+    {
+        return;
+    }
+
     if (bShowTrace)
     {
         UKismetSystemLibrary::DrawDebugSphere(
@@ -76,4 +82,6 @@ void UAttackingNotifyState::OnHitboxOverlap(UPrimitiveComponent* OverlappedCompo
     GameplayEventData.Target = Defender;
     GameplayEventData.TargetData = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(Defender);
     UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Attacker, TagToSend, GameplayEventData);
+
+
 }

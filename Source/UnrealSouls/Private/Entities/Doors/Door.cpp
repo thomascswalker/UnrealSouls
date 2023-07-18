@@ -56,9 +56,6 @@ void ADoor::Interact_Implementation(AActor* OtherActor)
     }
     InteractingActor = Character;
 
-    UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
-    Movement->SetMovementMode(EMovementMode::MOVE_None);
-
     FLatentActionInfo LatentInfo;
     LatentInfo.CallbackTarget = this;
     LatentInfo.ExecutionFunction = FName("OnMoveComponentToComplete");
@@ -67,8 +64,7 @@ void ADoor::Interact_Implementation(AActor* OtherActor)
 
     FVector TargetLocation = AnimLocationBox->GetComponentLocation();
     FRotator TargetRotation = GetActorForwardVector().ToOrientationRotator();
-    UKismetSystemLibrary::MoveComponentTo(
-        Character->GetCapsuleComponent(), TargetLocation, TargetRotation, true, true, 0.25f, false, EMoveComponentAction::Type::Move, LatentInfo);
+    UKismetSystemLibrary::MoveComponentTo(Character->GetCapsuleComponent(), TargetLocation, TargetRotation, true, true, 0.25f, false, EMoveComponentAction::Type::Move, LatentInfo);
 }
 
 void ADoor::OnAnimateDoor_Implementation() {}
@@ -95,9 +91,4 @@ void ADoor::OnMoveComponentToComplete()
     OnAnimateDoor();
 }
 
-void ADoor::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-    AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(InteractingActor);
-    UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
-    Movement->SetMovementMode(EMovementMode::MOVE_Walking);
-}
+void ADoor::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted) {}

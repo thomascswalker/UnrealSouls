@@ -23,11 +23,10 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 {
     Super::PostGameplayEffectExecute(Data);
 
+    // Handle health
     if (Data.EvaluatedData.Attribute == GetHealthAttribute())
     {
-        // Update the character's health, clamping it between 0 and the max health
         AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(Data.Target.GetOwnerActor());
-        SetHealth(FMath::Clamp(GetHealth(), 0.0f, BaseHealth));
 
         // Update the character's health bar with the damage value
         float DamageTaken = PreHealthChanged - GetHealth();

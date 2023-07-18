@@ -50,10 +50,11 @@ void AUnrealSoulsCharacter::BeginPlay()
         AbilitySystemComponent->GetSet<UCharacterAttributeSet>();
         AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
-        Attributes->InitHealth(CharacterInfo.BaseHealth);
-        Attributes->InitStamina(CharacterInfo.BaseStamina);
-        Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
+        InitializeAttributes();
+        InitializeAbilities();
     }
+
+    ConstructParticles();
 }
 
 void AUnrealSoulsCharacter::Tick(float DeltaTime)
@@ -81,20 +82,10 @@ UAbilitySystemComponent* AUnrealSoulsCharacter::GetAbilitySystemComponent() cons
 
 void AUnrealSoulsCharacter::InitializeAttributes()
 {
-    if (!AbilitySystemComponent || !DefaultAttributeEffect)
-    {
-        return;
-    }
-
-    FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-    EffectContext.AddSourceObject(this);
-
-    FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContext);
-
-    if (SpecHandle.IsValid())
-    {
-        FActiveGameplayEffectHandle GEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-    }
+    // Set default attributes
+    Attributes->InitHealth(CharacterInfo.BaseHealth);
+    Attributes->InitStamina(CharacterInfo.BaseStamina);
+    Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
 }
 
 void AUnrealSoulsCharacter::InitializeAbilities()
@@ -110,7 +101,41 @@ void AUnrealSoulsCharacter::InitializeAbilities()
     }
 }
 
+void AUnrealSoulsCharacter::AddGameplayTag(const FGameplayTag& GameplayTag) const
+{
+    AbilitySystemComponent->AddLooseGameplayTag(GameplayTag);
+}
+
+void AUnrealSoulsCharacter::RemoveGameplayTag(const FGameplayTag& GameplayTag) const
+{
+    AbilitySystemComponent->RemoveLooseGameplayTag(GameplayTag);
+}
+
+bool AUnrealSoulsCharacter::HasGameplayTag(const FGameplayTag& GameplayTag) const
+{
+    return AbilitySystemComponent->HasMatchingGameplayTag(GameplayTag);
+}
+
 UUserWidget* AUnrealSoulsCharacter::GetHealthBarWidget_Implementation() const
 {
     return HealthBarComponent->GetWidget();
+}
+
+bool AUnrealSoulsCharacter::IsInvulnerable_Implementation() const
+{
+    FGameplayTag InvulnerableTag = FGameplayTag::RequestGameplayTag(FName("Character.State.Invulnerable"));
+    return HasGameplayTag(InvulnerableTag);
+}
+
+void AUnrealSoulsCharacter::SetInvulnerable_Implementation(bool bInInvulnerable)
+{
+    FGameplayTag InvulnerableTag = FGameplayTag::RequestGameplayTag(FName("Character.State.Invulnerable"));
+    if (bInInvulnerable)
+    {
+        AddGameplayTag(InvulnerableTag);
+    }
+    else
+    {
+        RemoveGameplayTag(InvulnerableTag);
+    }
 }

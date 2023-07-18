@@ -59,8 +59,8 @@ void AStaticEntity::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
     }
 
     UPlayerFunctionLibrary::ShowPrompt(this, GetActionText());
-    Controller->CurrentInteractiveEntity.SetInterface(this);
-    Controller->CurrentInteractiveEntity.SetObject(this);
+    Controller->CurrentInteractiveCharacter.SetInterface(this);
+    Controller->CurrentInteractiveCharacter.SetObject(this);
 }
 
 void AStaticEntity::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -82,8 +82,8 @@ void AStaticEntity::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
     }
 
     UPlayerFunctionLibrary::HidePrompt(this);
-    Controller->CurrentInteractiveEntity.SetInterface(nullptr);
-    Controller->CurrentInteractiveEntity.SetObject(nullptr);
+    Controller->CurrentInteractiveCharacter.SetInterface(nullptr);
+    Controller->CurrentInteractiveCharacter.SetObject(nullptr);
 }
 
 void AStaticEntity::Interact_Implementation(AActor* OtherActor) {}

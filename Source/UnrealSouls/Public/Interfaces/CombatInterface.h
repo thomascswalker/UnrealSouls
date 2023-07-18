@@ -36,7 +36,10 @@ public:
     bool IsTargetable() const;
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-    bool CanTakeDamage() const;
+    bool IsInvulnerable() const;
+
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    void SetInvulnerable(bool bInvulnerable);
 
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     UCapsuleComponent* GetWeaponHitbox() const;

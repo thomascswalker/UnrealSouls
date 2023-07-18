@@ -7,61 +7,42 @@
 
 struct DamageStatics
 {
-	DECLARE_ATTRIBUTE_CAPTUREDEF(Health);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(AttackPower);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(Health);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(AttackPower);
 
-	DamageStatics()
-	{
-		// Capture the Target's Health attribute. Do not snapshot it, because we want to use the health value at the moment we apply the execution.
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, Health, Target, false);
+    DamageStatics()
+    {
+        // Capture the Target's Health attribute. Do not snapshot it, because we want to use the health value at the moment we apply the execution.
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, Health, Target, false);
 
-		// Capture the Source's AttackPower. We do want to snapshot this at the moment we create the GameplayEffectSpec that will execute the damage.
-		// (imagine we fire a projectile: we create the GE Spec when the projectile is fired. When it hits the target, we want to use the AttackPower
-		// at the moment the projectile was launched, not when it hits).
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, AttackPower, Source, true);
-	}
+        // Capture the Source's AttackPower. We do want to snapshot this at the moment we create the GameplayEffectSpec that will execute the damage.
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, AttackPower, Source, true);
+    }
 };
 
 DamageStatics& Damage()
 {
-	static DamageStatics It;
-	return It;
+    static DamageStatics It;
+    return It;
 }
 
-void UDamageExecution::Execute_Implementation(
-	const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
+UDamageExecution::UDamageExecution()
 {
+    RelevantAttributesToCapture.Add(DamageStatics().HealthDef);
+    RelevantAttributesToCapture.Add(DamageStatics().AttackPowerDef);
+}
 
-	UAbilitySystemComponent* TargetAbilitySystemComponent = ExecutionParams.GetTargetAbilitySystemComponent();
-	UAbilitySystemComponent* SourceAbilitySystemComponent = ExecutionParams.GetSourceAbilitySystemComponent();
+void UDamageExecution::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
+{
+    // Capture the Target Health and Source Attack Power
+    float Health = 0.0f;
+    float AttackPower = 0.0f;
+    ExecutionParams.AttemptCalculateCapturedAttributeBaseValue(Damage().HealthDef, Health);
+    ExecutionParams.AttemptCalculateCapturedAttributeBaseValue(Damage().AttackPowerDef, AttackPower);
 
-	AActor* SourceActor = SourceAbilitySystemComponent ? SourceAbilitySystemComponent->GetOwner() : nullptr;
-	AActor* TargetActor = TargetAbilitySystemComponent ? TargetAbilitySystemComponent->GetOwner() : nullptr;
-
-    UE_LOG(LogTemp, Display, TEXT("Damage execution from %s to %s"), *SourceActor->GetName(), *TargetActor->GetName())
-
-	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-
-	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
-	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
-
-	FAggregatorEvaluateParameters EvaluationParameters;
-	EvaluationParameters.SourceTags = SourceTags;
-	EvaluationParameters.TargetTags = TargetTags;
-
-	// --------------------------------------------------------------------------------------------
-
-	float Health = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Damage().HealthDef, EvaluationParameters, Health);
-
-	float AttackPower = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Damage().AttackPowerDef, EvaluationParameters, AttackPower);
-
-	float DamageDone = FMath::Min<float>(AttackPower, Health);
-    UE_LOG(LogTemp, Display, TEXT("Damage done: %f"), DamageDone)
-
-	if (DamageDone > 0.f)
-	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Damage().HealthProperty, EGameplayModOp::Additive, -DamageDone));
-	}
+    // If Attack Power is above 0, we'll add an output modifier to lower the health of the Target
+    if (AttackPower > 0.f)
+    {
+        OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Damage().HealthProperty, EGameplayModOp::Additive, -AttackPower));
+    }
 }

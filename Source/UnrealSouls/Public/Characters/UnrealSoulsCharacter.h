@@ -19,9 +19,14 @@
 #include "GameplayEffectTypes.h"
 #include "InputActionValue.h"
 #include "Interfaces/CombatInterface.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "UI/StatusBar.h"
+#include "NiagaraComponent.h"
 
 #include "UnrealSoulsCharacter.generated.h"
+
+class UNiagaraComponent;
 
 UENUM(BlueprintType)
 enum class EFaction : uint8
@@ -65,6 +70,7 @@ public:
 
     virtual void PossessedBy(AController* NewController) override;
 
+    /// Misc
 public:
     FORCEINLINE bool PlayMontage(UAnimMontage* Montage, UObject* InObject, const FName InFunctionName = "", float PlayRate = 1.0f)
     {
@@ -89,56 +95,90 @@ public:
         }
     }
 
+    /// Particles
 public:
-    UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-    virtual void InitializeAttributes();
-    virtual void InitializeAbilities();
-
-    UFUNCTION(BlueprintCallable)
-    FORCEINLINE void AddGameplayTag(const FGameplayTag& GameplayTag)
+    FORCEINLINE void ConstructParticles()
     {
-        AbilitySystemComponent->AddLooseGameplayTag(GameplayTag);
+        for (const FCharacterParticle& CharacterParticle : CharacterInfo.Particles)
+        {
+            FName Socket = CharacterParticle.Socket;
+            UE_LOG(LogTemp, Display, TEXT("%s"), *Socket.ToString())
+            FName CompName = FName(FString::Printf(TEXT("NiagaraComponent_%s"), *Socket.ToString()));
+            UNiagaraComponent* NewComp = NewObject<UNiagaraComponent>(this, UNiagaraComponent::StaticClass(), Socket);
+            if (NewComp)
+            {
+                NewComp->RegisterComponent();
+                NewComp->SetAsset(CharacterParticle.System);
+                NewComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Socket);
+                // attach or set location, etc
+            }
+        }
     }
 
-    UFUNCTION(BlueprintCallable)
-    FORCEINLINE void RemoveGameplayTag(const FGameplayTag& GameplayTag)
-    {
-        AbilitySystemComponent->RemoveLooseGameplayTag(GameplayTag);
-    }
-
-    UFUNCTION(BlueprintCallable)
-    FCharacterInfo GetCharacterInfo() const
-    {
-        return CharacterInfo;
-    }
-
-    UFUNCTION(BlueprintCallable)
-    void SetCharacterInfo(FCharacterInfo NewCharacterInfo)
-    {
-        CharacterInfo = NewCharacterInfo;
-
-        Attributes->InitHealth(CharacterInfo.BaseHealth);
-        Attributes->InitStamina(CharacterInfo.BaseStamina);
-        Attributes->InitAttackPower(CharacterInfo.BaseAttackPower);
-        Attributes->BaseHealth = CharacterInfo.BaseHealth;
-        Attributes->BaseStamina = CharacterInfo.BaseStamina;
-    }
-
+    /// Abilities
+public:
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
     TSubclassOf<class UGameplayEffect> DefaultAttributeEffect;
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
     TArray<TSubclassOf<class UGameplayAbility>> DefaultAbilities;
 
-    /* The character's base info. Defined in DT_EntityTable. */
-    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Attributes")
+    UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+    UFUNCTION(BlueprintCallable, Category = "Attributes")
+    virtual void InitializeAttributes();
+    UFUNCTION(BlueprintCallable, Category = "Attributes")
+    virtual void InitializeAbilities();
+
+    /* Wrapper for adding GameplayTags */
+    UFUNCTION(BlueprintCallable)
+    void AddGameplayTag(const FGameplayTag& GameplayTag) const;
+
+    /* Wrapper for removing GameplayTags */
+    UFUNCTION(BlueprintCallable)
+    void RemoveGameplayTag(const FGameplayTag& GameplayTag) const;
+
+    /* Wrapper for checking GameplayTags */
+    UFUNCTION(BlueprintCallable)
+    bool HasGameplayTag(const FGameplayTag& GameplayTag) const;
+
+public:
+    UFUNCTION(BlueprintCallable)
+    void Attack()
+    {
+        AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Character.Action.Attack")));
+    }
+
+    UFUNCTION(BlueprintCallable)
+    void Roll()
+    {
+        AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Character.Action.Roll")));
+    }
+
+    /// Character Info
+public:
+    /* The character's base info. Defined in DT_CharacterTable. */
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Attributes")
     FCharacterInfo CharacterInfo;
 
-    /* Whether the character can receive damage or not. */
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Abilities")
-    bool bCanReceiveDamage = true;
+    /* Get CharacterInfo for this Character. */
+    UFUNCTION(BlueprintCallable)
+    FCharacterInfo GetCharacterInfo() const
+    {
+        return CharacterInfo;
+    }
 
+    /* Update CharacterInfo in this Character. This will also reinitialize the CharacterAttributeSet.*/
+    UFUNCTION(BlueprintCallable)
+    void SetCharacterInfo(const FCharacterInfo& InCharacterInfo)
+    {
+        CharacterInfo = InCharacterInfo;
+        GetMesh()->SetSkeletalMeshAsset(CharacterInfo.Mesh);
+        GetMesh()->SetAnimInstanceClass(CharacterInfo.AnimClass);
+        InitializeAttributes();
+    }
+
+public:
     /* Handle for IFrame events. */
     FTimerHandle IFrameHandle;
 
@@ -174,29 +214,26 @@ public:
         return AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Character.State.IsRolling"));
     }
 
-    UFUNCTION(BlueprintCallable, Category = "Combat")
-    FORCEINLINE bool IsInvulnerable() const
-    {
-        FGameplayTag InvulnerableTag = FGameplayTag::RequestGameplayTag(FName("Character.State.Invulnerable"));
-        bool bIsInvulnerable = AbilitySystemComponent->HasMatchingGameplayTag(InvulnerableTag);
-        return bIsInvulnerable;
-    }
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Combat")
+    bool IsInvulnerable() const;
 
-    UFUNCTION(BlueprintCallable, Category = "Combat")
-    FORCEINLINE void ReceiveDamage(float InDamage) {}
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Combat")
+    void SetInvulnerable(bool bInInvulnerable);
 
     /* Enables IFrames. This sets bCanReceiveDamage to false. */
     UFUNCTION(BlueprintCallable, Category = "Combat")
     FORCEINLINE void EnableIFrame()
     {
-        bCanReceiveDamage = false;
+        // bCanReceiveDamage = false;
+        AddGameplayTag(FGameplayTag::RequestGameplayTag("Character.State.Invulnerable"));
     }
 
     /* Enables IFrames for the specified Duration. This sets bCanReceiveDamage to false until the Duration has been reached. */
     UFUNCTION(BlueprintCallable, Category = "Combat")
     FORCEINLINE void EnableIFrameForDuration(float Duration)
     {
-        bCanReceiveDamage = false;
+        // bCanReceiveDamage = false;
+        AddGameplayTag(FGameplayTag::RequestGameplayTag("Character.State.Invulnerable"));
         GetWorld()->GetTimerManager().SetTimer(IFrameHandle, this, &AUnrealSoulsCharacter::DisableIFrame, Duration);
     }
 
@@ -204,7 +241,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Combat")
     FORCEINLINE void DisableIFrame()
     {
-        bCanReceiveDamage = true;
+        // bCanReceiveDamage = true;
+        RemoveGameplayTag(FGameplayTag::RequestGameplayTag("Character.State.Invulnerable"));
         if (IFrameHandle.IsValid())
         {
             GetWorld()->GetTimerManager().ClearTimer(IFrameHandle);
@@ -216,7 +254,7 @@ public:
     FORCEINLINE void Die()
     {
         // Disable damage
-        bCanReceiveDamage = false;
+        SetInvulnerable(true);
 
         // Disable collision with pawns (but preserve collision with the environment)
         GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
@@ -247,21 +285,6 @@ public:
 
         HealthBar->ShowText(2.0f);
         HealthBar->SetText(FText::FromString(FString::SanitizeFloat(InDamage, 0)));
-    }
-
-public:
-    /* Abilities */
-
-    UFUNCTION(BlueprintCallable)
-    void Attack()
-    {
-        AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Character.Action.Attack")));
-    }
-
-    UFUNCTION(BlueprintCallable)
-    void Roll()
-    {
-        AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Character.Action.Roll")));
     }
 
 public:

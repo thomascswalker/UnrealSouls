@@ -10,7 +10,6 @@ void UImmobileNotifyState::NotifyBegin(
     AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(MeshComp->GetOwner());
     if (!Character)
     {
-        UE_LOG(LogTemp, Error, TEXT("ImmobileNotifyState requires AUnrealSoulsCharacter."));
         return;
     }
     Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
@@ -21,7 +20,6 @@ void UImmobileNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequ
     AUnrealSoulsCharacter* Character = Cast<AUnrealSoulsCharacter>(MeshComp->GetOwner());
     if (!Character)
     {
-        UE_LOG(LogTemp, Error, TEXT("ImmobileNotifyState requires AUnrealSoulsCharacter."));
         return;
     }
     Character->GetCharacterMovement()->SetMovementMode(EndMoveState);

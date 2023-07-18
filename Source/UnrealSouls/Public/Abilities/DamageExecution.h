@@ -14,6 +14,7 @@ class UNREALSOULS_API UDamageExecution : public UGameplayEffectExecutionCalculat
 {
 	GENERATED_BODY()
 public:
+    UDamageExecution();
 	virtual void Execute_Implementation(
 		const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 };

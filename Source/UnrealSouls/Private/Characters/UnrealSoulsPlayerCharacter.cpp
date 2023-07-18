@@ -42,8 +42,6 @@ AUnrealSoulsPlayerCharacter::AUnrealSoulsPlayerCharacter()
         USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
     FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
     FollowCamera->FieldOfView = 43.0f;
-
-    bCanReceiveDamage = true;
 }
 
 // Called when the game starts or when spawned

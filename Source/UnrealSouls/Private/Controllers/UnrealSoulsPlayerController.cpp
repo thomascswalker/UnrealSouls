@@ -158,9 +158,9 @@ void AUnrealSoulsPlayerController::OnJumpTriggered(const FInputActionValue& Acti
 
 void AUnrealSoulsPlayerController::OnInteractTriggered(const FInputActionValue& ActionValue)
 {
-    if (CurrentInteractiveEntity.GetObject() != nullptr)
+    if (CurrentInteractiveCharacter.GetObject() != nullptr)
     {
-        IInteractive::Execute_Interact(CurrentInteractiveEntity.GetObject(), PlayerCharacter);
+        IInteractive::Execute_Interact(CurrentInteractiveCharacter.GetObject(), PlayerCharacter);
     }
 }
 

@@ -5,8 +5,24 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "NiagaraSystem.h"
 
 #include "CharacterInfo.generated.h"
+
+class UNiagaraSystem;
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FCharacterParticle
+{
+public:
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    class UNiagaraSystem* System;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FName Socket;
+};
 
 UENUM(BlueprintType, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
 enum class ECharacterMaskType : uint8
@@ -29,6 +45,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General")
     USkeletalMesh* Mesh;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    TSubclassOf<UAnimInstance> AnimClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     UBehaviorTree* BehaviorTree;
@@ -56,4 +75,7 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
     float Souls;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+    TArray<FCharacterParticle> Particles;
 };

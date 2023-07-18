@@ -60,7 +60,7 @@ public:
     class UInputAction* BlockAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TScriptInterface<IInteractive> CurrentInteractiveEntity = nullptr;
+    TScriptInterface<IInteractive> CurrentInteractiveCharacter = nullptr;
 
     FVector CachePlayerDirection;
 
