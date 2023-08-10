@@ -22,7 +22,6 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "UI/StatusBar.h"
-#include "NiagaraComponent.h"
 
 #include "UnrealSoulsCharacter.generated.h"
 
