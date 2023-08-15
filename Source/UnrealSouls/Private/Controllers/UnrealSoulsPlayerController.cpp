@@ -224,12 +224,31 @@ void AUnrealSoulsPlayerController::Untarget()
 
 void AUnrealSoulsPlayerController::OnAttackTriggered(const FInputActionValue& ActionValue)
 {
-    PlayerCharacter->Attack();
+    FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag("Character.Action.Attack");
+    PlayerCharacter->AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag), false);
 }
 
-void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& ActionValue) {}
+void AUnrealSoulsPlayerController::OnBlockTriggered(const FInputActionValue& ActionValue)
+{
+    FGameplayTag BlockingTag = FGameplayTag::RequestGameplayTag("Character.State.Blocking");
+    PlayerCharacter->AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(BlockingTag), false);
+}
 
-void AUnrealSoulsPlayerController::OnBlockCompleted(const FInputActionValue& ActionValue) {}
+void AUnrealSoulsPlayerController::OnBlockCompleted(const FInputActionValue& ActionValue)
+{
+    TArray<FGameplayAbilitySpecHandle> OutAbilityHandles;
+    FGameplayTag BlockTag = FGameplayTag::RequestGameplayTag("Character.State.Blocking");
+    PlayerCharacter->AbilitySystemComponent->FindAllAbilitiesWithTags(OutAbilityHandles, FGameplayTagContainer(BlockTag));
+
+    for (const FGameplayAbilitySpecHandle& Handle : OutAbilityHandles)
+    {
+        FGameplayAbilitySpec* Spec = PlayerCharacter->AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
+        if (Spec)
+        {
+            PlayerCharacter->AbilitySystemComponent->CancelAbility(Spec->Ability);
+        }
+    }
+}
 
 void AUnrealSoulsPlayerController::ShowPrompt_Implementation(const FText& Text)
 {
